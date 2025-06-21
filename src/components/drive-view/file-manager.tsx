@@ -31,19 +31,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Progress } from "@/components/ui/progress"
 import { Tabs } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileItem, FileType } from "./file"
+import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
+import { UploadModal } from "./upload-modal"
 
 // Sample data
-const sampleFiles: FileItem[] = [
+const sampleFiles: FileorFolderItem[] = [
   {
     id: "1",
     name: "Documents",
@@ -114,7 +114,7 @@ const sampleFiles: FileItem[] = [
 ]
 
 // Helper function to get file icon
-const getFileIcon = (type: FileType) => {
+const getIcon = (type: FileorFolderType) => {
   switch (type) {
     case "folder":
       return <Folder className="h-5 w-5 text-blue-500" />
@@ -152,8 +152,8 @@ function MoveDestinationFolder({
 
 export default function FileManager() {
 
-  // Non-modal state
-  const [files, setFiles] = useState<FileItem[]>(sampleFiles)
+  // Non-modal states
+  const [files, setFiles] = useState<FileorFolderItem[]>(sampleFiles)
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [currentPath, setCurrentPath] = useState<string[]>(["Home"])
@@ -166,11 +166,7 @@ export default function FileManager() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [moveModalOpen, setMoveModalOpen] = useState(false)
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
-  const [activeFile, setActiveFile] = useState<FileItem | null>(null)
-
-  // Upload progress simulation
-  const [uploadProgress, setUploadProgress] = useState(0)
-  const [uploadingFile, setUploadingFile] = useState("")
+  const [activeFile, setActiveFile] = useState<FileorFolderItem | null>(null)
 
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
@@ -198,11 +194,9 @@ export default function FileManager() {
   }
 
   // Handle folder navigation
-  const navigateToFolder = (folder: FileItem) => {
-    if (folder.type === "folder") {
-      setCurrentPath([...folder.path, folder.name])
-      setSelectedFiles([])
-    }
+  const navigateToFolder = (folder: FolderItem) => {
+    setCurrentPath([...folder.path, folder.name])
+    setSelectedFiles([])
   }
 
   // Handle breadcrumb navigation
@@ -212,13 +206,14 @@ export default function FileManager() {
   }
 
   // Handle file actions
-  const handleFileAction = (action: string, file: FileItem) => {
+  const handleFileAction = (action: string, file: FileorFolderItem) => {
     setActiveFile(file)
 
     switch (action) {
       case "open":
+        // If it's a folder, navigate into it; otherwise, open the preview modal
         if (file.type === "folder") {
-          navigateToFolder(file)
+          navigateToFolder(file as FolderItem)
         } else {
           setPreviewModalOpen(true)
         }
@@ -255,49 +250,11 @@ export default function FileManager() {
     }
   }
 
-  // Simulate file upload
-  const simulateUpload = (fileName: string) => {
-    setUploadingFile(fileName)
-    setUploadProgress(0)
-
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-
-          // Add the new file to the list
-          const newFile: FileItem = {
-            id: Date.now().toString(),
-            name: fileName,
-            type: fileName.endsWith(".pdf")
-              ? "pdf"
-              : fileName.endsWith(".jpg") || fileName.endsWith(".png")
-                ? "image"
-                : fileName.endsWith(".docx") || fileName.endsWith(".txt")
-                  ? "document"
-                  : fileName.endsWith(".js") || fileName.endsWith(".ts")
-                    ? "code"
-                    : "other",
-            size: "1.2 MB",
-            modified: new Date(),
-            path: currentPath,
-          }
-
-          setFiles((prev) => [...prev, newFile])
-          setUploadModalOpen(false)
-          setUploadingFile("")
-          return 0
-        }
-        return prev + 10
-      })
-    }, 300)
-  }
-
   // Create new folder
   const createNewFolder = () => {
     if (newFolderName.trim() === "") return
 
-    const newFolder: FileItem = {
+    const newFolder: FolderItem = {
       id: Date.now().toString(),
       name: newFolderName,
       type: "folder",
@@ -446,7 +403,7 @@ export default function FileManager() {
             setNewFolderModalOpen={setNewFolderModalOpen}
             setUploadModalOpen={setUploadModalOpen}
             toggleSelectAll={toggleSelectAll}
-            getFileIcon={getFileIcon}
+            getFileIcon={getIcon}
           />
           
 
@@ -460,7 +417,7 @@ export default function FileManager() {
             setSelectedFiles={setSelectedFiles}
             setNewFolderModalOpen={setNewFolderModalOpen}
             setUploadModalOpen={setUploadModalOpen}
-            getFileIcon={getFileIcon}
+            getFileIcon={getIcon}
           />
         </Tabs>
       </CardContent>
@@ -611,7 +568,7 @@ export default function FileManager() {
         setPreviewModalOpen={setPreviewModalOpen}
         activeFile={activeFile}
         formatDate={(date: Date) => formatDate(date)}
-        getFileIcon={getFileIcon}
+        getFileIcon={getIcon}
       />
     </Card>
   )

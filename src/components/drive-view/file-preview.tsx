@@ -9,19 +9,18 @@ import { Button } from "@/components/ui/button"
 import type { JSX } from "react"
 import { ImageIcon,
     FileIcon as FilePDF,
-    FileText,
-    FileIcon as FileTextIcon
+    FileText
 } from "lucide-react"
-import type { FileItem, FileType } from "./file"
+import type { FileorFolderItem, FileorFolderType } from "./file"
 
 
 export function FilePreview({  previewModalOpen,
   setPreviewModalOpen, activeFile, formatDate, getFileIcon } : {
   previewModalOpen: boolean,
   setPreviewModalOpen: (open: boolean) => void,
-  activeFile: FileItem | null,
+  activeFile: FileorFolderItem | null,
   formatDate: (date: Date) => string,
-  getFileIcon: (type: FileType) => JSX.Element
+  getFileIcon: (type: FileorFolderType) => JSX.Element
 }) {
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
