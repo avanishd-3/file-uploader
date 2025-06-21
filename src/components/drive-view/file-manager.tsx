@@ -1,14 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState} from "react"
 import {
   ChevronRight,
   FileText,
   Folder,
   Grid,
-  ImageIcon,
   List,
-  MoreVertical,
   Plus,
   Search,
   Upload,
@@ -18,25 +16,13 @@ import {
   FileCode,
   Download,
   Trash2,
-  Edit,
   Move,
-  Eye,
   X,
 } from "lucide-react"
-import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -46,22 +32,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent } from "@/components/ui/tabs"
+import { Tabs } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { NameInput } from "./name-input"
+import { TableList } from "./table-list"
 
-// Types
-type FileType = "folder" | "pdf" | "image" | "document" | "code" | "other"
-
-interface FileItem {
-  id: string
-  name: string
-  type: FileType
-  size: string
-  items?: number
-  modified: Date
-  path: string[]
-}
+import type { FileItem, FileType } from "./file"
+import { TableGrid } from "./table-grid"
+import { FilePreview } from "./file-preview"
+import { formatDate } from "@/lib/utils"
 
 // Sample data
 const sampleFiles: FileItem[] = [
@@ -134,21 +113,6 @@ const sampleFiles: FileItem[] = [
   },
 ]
 
-// Helper function to format dates
-const formatDate = (date: Date) => {
-  const now = new Date()
-  const yesterday = new Date(now)
-  yesterday.setDate(yesterday.getDate() - 1)
-
-  if (date.toDateString() === now.toDateString()) {
-    return "Today"
-  } else if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday"
-  } else {
-    return format(date, "MMM d, yyyy")
-  }
-}
-
 // Helper function to get file icon
 const getFileIcon = (type: FileType) => {
   switch (type) {
@@ -167,7 +131,28 @@ const getFileIcon = (type: FileType) => {
   }
 }
 
+// Component to display the destination folder for moving files
+function MoveDestinationFolder({
+  folder,
+  onClick,
+}: {
+  folder: { id?: string; name: string }
+  onClick: () => void
+}) {
+  return (
+    <div
+      className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+      onClick={onClick}
+    >
+      <Folder className="h-5 w-5 text-blue-500" />
+      <span>{folder.name}</span>
+    </div>
+  )
+}
+
 export default function FileManager() {
+
+  // Non-modal state
   const [files, setFiles] = useState<FileItem[]>(sampleFiles)
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
@@ -323,7 +308,7 @@ export default function FileManager() {
     }
 
     setFiles((prev) => [...prev, newFolder])
-    setNewFolderName("")
+    setNewFolderName("") // Reset folder name input
     setNewFolderModalOpen(false)
   }
 
@@ -334,7 +319,7 @@ export default function FileManager() {
     setFiles((prev) => prev.map((file) => (file.id === activeFile.id ? { ...file, name: newFileName } : file)))
 
     setRenameModalOpen(false)
-    setActiveFile(null)
+    setActiveFile(null) 
   }
 
   // Delete file/folder
@@ -353,7 +338,10 @@ export default function FileManager() {
   return (
     <Card className="w-full max-w-6xl mx-auto shadow-md">
       <CardHeader className="p-4 border-b">
+        
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+
+          {/* Breadcrumb */}
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
             {currentPath.map((path, index) => (
               <div key={index} className="flex items-center">
@@ -368,6 +356,7 @@ export default function FileManager() {
             ))}
           </div>
 
+          {/* Actions Toolbar */}
           <div className="flex items-center space-x-2">
             <div className="relative w-full md:w-auto">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -443,258 +432,36 @@ export default function FileManager() {
         </div>
       )}
 
+      {/* Where files and folders are actually displayed */}
       <CardContent className="p-0">
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "list" | "grid")}>
-          <TabsContent value="list" className="m-0">
-            {filteredFiles.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox
-                        checked={selectedFiles.length === filteredFiles.length && filteredFiles.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                        aria-label="Select all"
-                      />
-                    </TableHead>
-                    <TableHead className="w-[300px]">Name</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Modified</TableHead>
-                    <TableHead className="w-[80px]">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFiles.map((file) => (
-                    <TableRow key={file.id} className={selectedFiles.includes(file.id) ? "bg-muted/50" : ""}>
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedFiles.includes(file.id)}
-                          onCheckedChange={() => toggleSelection(file.id)}
-                          aria-label={`Select ${file.name}`}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className="flex items-center space-x-2 cursor-pointer"
-                          onClick={() => handleFileAction("open", file)}
-                        >
-                          {getFileIcon(file.type)}
-                          <span className="font-medium">{file.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {file.type === "folder" ? `${file.items} item${file.items !== 1 ? "s" : ""}` : file.size}
-                      </TableCell>
-                      <TableCell>{formatDate(file.modified)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVertical className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleFileAction("open", file)}>
-                              {file.type === "folder" ? (
-                                <>
-                                  <Folder className="h-4 w-4 mr-2" />
-                                  Open
-                                </>
-                              ) : (
-                                <>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Preview
-                                </>
-                              )}
-                            </DropdownMenuItem>
+          {/* List layout for files and folders */}
+          <TableList
+            filteredFiles={filteredFiles}
+            selectedFiles={selectedFiles}
+            toggleSelection={toggleSelection}
+            handleFileAction={handleFileAction}
+            searchQuery={searchQuery}
+            setSelectedFiles={setSelectedFiles}
+            setNewFolderModalOpen={setNewFolderModalOpen}
+            setUploadModalOpen={setUploadModalOpen}
+            toggleSelectAll={toggleSelectAll}
+            getFileIcon={getFileIcon}
+          />
+          
 
-                            {file.type !== "folder" && (
-                              <DropdownMenuItem onClick={() => handleFileAction("download", file)}>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download
-                              </DropdownMenuItem>
-                            )}
-
-                            {file.type === "folder" && (
-                              <DropdownMenuItem onClick={() => handleFileAction("download", file)}>
-                                <Download className="h-4 w-4 mr-2" />
-                                Download as ZIP
-                              </DropdownMenuItem>
-                            )}
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem onClick={() => handleFileAction("rename", file)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Rename
-                            </DropdownMenuItem>
-
-                            <DropdownMenuItem onClick={() => handleFileAction("move", file)}>
-                              <Move className="h-4 w-4 mr-2" />
-                              Move
-                            </DropdownMenuItem>
-
-                            <DropdownMenuSeparator />
-
-                            <DropdownMenuItem
-                              onClick={() => handleFileAction("delete", file)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="rounded-full bg-muted p-3">
-                  <Folder className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">No files found</h3>
-                <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-                  {searchQuery
-                    ? `No results found for "${searchQuery}". Try a different search term.`
-                    : "This folder is empty. Upload a file or create a new folder."}
-                </p>
-                <div className="mt-4 flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setNewFolderModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Folder
-                  </Button>
-                  <Button size="sm" onClick={() => setUploadModalOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload File
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="grid" className="m-0">
-            {filteredFiles.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
-                {filteredFiles.map((file) => (
-                  <div
-                    key={file.id}
-                    className={`relative group rounded-lg border bg-card p-2 transition-all hover:shadow-md ${
-                      selectedFiles.includes(file.id) ? "ring-2 ring-primary" : ""
-                    }`}
-                  >
-                    <div className="absolute top-2 right-2">
-                      <Checkbox
-                        checked={selectedFiles.includes(file.id)}
-                        onCheckedChange={() => toggleSelection(file.id)}
-                        aria-label={`Select ${file.name}`}
-                      />
-                    </div>
-
-                    <div
-                      className="flex flex-col items-center p-4 cursor-pointer"
-                      onClick={() => handleFileAction("open", file)}
-                    >
-                      <div className="mb-2 text-4xl">{getFileIcon(file.type)}</div>
-                      <div className="text-center">
-                        <p className="font-medium truncate w-full max-w-[120px]">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {file.type === "folder" ? `${file.items} item${file.items !== 1 ? "s" : ""}` : file.size}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleFileAction("open", file)}>
-                            {file.type === "folder" ? (
-                              <>
-                                <Folder className="h-4 w-4 mr-2" />
-                                Open
-                              </>
-                            ) : (
-                              <>
-                                <Eye className="h-4 w-4 mr-2" />
-                                Preview
-                              </>
-                            )}
-                          </DropdownMenuItem>
-
-                          {file.type !== "folder" && (
-                            <DropdownMenuItem onClick={() => handleFileAction("download", file)}>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </DropdownMenuItem>
-                          )}
-
-                          {file.type === "folder" && (
-                            <DropdownMenuItem onClick={() => handleFileAction("download", file)}>
-                              <Download className="h-4 w-4 mr-2" />
-                              Download as ZIP
-                            </DropdownMenuItem>
-                          )}
-
-                          <DropdownMenuSeparator />
-
-                          <DropdownMenuItem onClick={() => handleFileAction("rename", file)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Rename
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={() => handleFileAction("move", file)}>
-                            <Move className="h-4 w-4 mr-2" />
-                            Move
-                          </DropdownMenuItem>
-
-                          <DropdownMenuSeparator />
-
-                          <DropdownMenuItem
-                            onClick={() => handleFileAction("delete", file)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="rounded-full bg-muted p-3">
-                  <Folder className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <h3 className="mt-4 text-lg font-semibold">No files found</h3>
-                <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-                  {searchQuery
-                    ? `No results found for "${searchQuery}". Try a different search term.`
-                    : "This folder is empty. Upload a file or create a new folder."}
-                </p>
-                <div className="mt-4 flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => setNewFolderModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Folder
-                  </Button>
-                  <Button size="sm" onClick={() => setUploadModalOpen(true)}>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload File
-                  </Button>
-                </div>
-              </div>
-            )}
-          </TabsContent>
+          {/* Grid layout for files and folders */}
+          <TableGrid
+            filteredFiles={filteredFiles}
+            selectedFiles={selectedFiles}
+            toggleSelection={toggleSelection}
+            handleFileAction={handleFileAction}
+            searchQuery={searchQuery}
+            setSelectedFiles={setSelectedFiles}
+            setNewFolderModalOpen={setNewFolderModalOpen}
+            setUploadModalOpen={setUploadModalOpen}
+            getFileIcon={getFileIcon}
+          />
         </Tabs>
       </CardContent>
 
@@ -749,14 +516,20 @@ export default function FileManager() {
 
           <div className="space-y-4 py-2 pb-4">
             <div className="space-y-2">
-              <Input
+              <NameInput
                 placeholder="Folder Name"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
+                // Create new folder on Enter key press
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    createNewFolder()
+                  }
+                }}
               />
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewFolderModalOpen(false)}>
               Cancel
@@ -778,14 +551,20 @@ export default function FileManager() {
 
           <div className="space-y-4 py-2 pb-4">
             <div className="space-y-2">
-              <Input
+              <NameInput
                 placeholder={activeFile?.type === "folder" ? "Folder Name" : "File Name"}
                 value={newFileName}
                 onChange={(e) => setNewFileName(e.target.value)}
+                // Rename file on Enter key press
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    renameFile()
+                  }
+                }}
               />
             </div>
           </div>
-
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameModalOpen(false)}>
               Cancel
@@ -829,31 +608,25 @@ export default function FileManager() {
 
           <ScrollArea className="h-[200px] rounded-md border p-4">
             <div className="space-y-2">
-              <div
-                className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+              <MoveDestinationFolder
+                folder={{name: "Home"}}
                 onClick={() => {
-                  // Move logic would go here
+                  // TODO -> Implement move logic
                   setMoveModalOpen(false)
                 }}
-              >
-                <Folder className="h-5 w-5 text-blue-500" />
-                <span>Home</span>
-              </div>
+              />
 
               {files
                 .filter((file) => file.type === "folder")
                 .map((folder) => (
-                  <div
+                  <MoveDestinationFolder
                     key={folder.id}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+                    folder={folder}
                     onClick={() => {
-                      // Move logic would go here
+                      // TODO -> Implement move logic
                       setMoveModalOpen(false)
                     }}
-                  >
-                    <Folder className="h-5 w-5 text-blue-500" />
-                    <span>{folder.name}</span>
-                  </div>
+                  />
                 ))}
             </div>
           </ScrollArea>
@@ -868,46 +641,13 @@ export default function FileManager() {
       </Dialog>
 
       {/* Preview Modal */}
-      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              {getFileIcon(activeFile?.type || "other")}
-              <span className="ml-2">{activeFile?.name}</span>
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="flex flex-col items-center justify-center p-4 min-h-[300px]">
-            {activeFile?.type === "image" ? (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <ImageIcon className="h-16 w-16 text-muted-foreground" />
-                <span className="sr-only">Image preview</span>
-              </div>
-            ) : activeFile?.type === "pdf" ? (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <FilePdf className="h-16 w-16 text-red-500" />
-                <span className="sr-only">PDF preview</span>
-              </div>
-            ) : (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <FileText className="h-16 w-16 text-muted-foreground" />
-                <span className="sr-only">File preview</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-between items-center">
-            <div>
-              <Badge variant="outline" className="mr-2">
-                {activeFile?.size || "Unknown size"}
-              </Badge>
-              <Badge variant="outline">{formatDate(activeFile?.modified || new Date())}</Badge>
-            </div>
-
-            <Button onClick={() => setPreviewModalOpen(false)}>Close</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <FilePreview
+        previewModalOpen={previewModalOpen}
+        setPreviewModalOpen={setPreviewModalOpen}
+        activeFile={activeFile}
+        formatDate={(date: Date) => formatDate(date)}
+        getFileIcon={getFileIcon}
+      />
     </Card>
   )
 }

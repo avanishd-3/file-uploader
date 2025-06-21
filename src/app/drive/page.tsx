@@ -1,4 +1,4 @@
-import FileManager from "@/components/file-manager";
+import FileManager from "@/components/drive-view/file-manager";
 
 export default function DrivePage() {
     return (
