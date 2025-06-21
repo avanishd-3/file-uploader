@@ -13,7 +13,7 @@ import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
-import type { FileType } from "./file"
+import type { FileItem, FileType } from "./file"
 import type { JSX } from "react"
 
 {/* List layout for files and folders */}
@@ -21,11 +21,11 @@ export function TableList(
     { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelectAll, toggleSelection, getFileIcon }
 : {
-    filteredFiles: any[],
+    filteredFiles: FileItem[],
     searchQuery: string,
     selectedFiles: string[],
     setSelectedFiles: (files: string[]) => void,
-    handleFileAction: (action: string, file: any) => void,
+    handleFileAction: (action: string, file: FileItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,
     toggleSelectAll: () => void,

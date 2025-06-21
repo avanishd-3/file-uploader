@@ -11,7 +11,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { EmptyState } from "./empty-state"
-import type { FileType } from "./file"
+import type { FileItem, FileType } from "./file"
 import type { JSX } from "react"
 
 
@@ -20,11 +20,11 @@ export function TableGrid(
     { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelection, getFileIcon }
 : {
-    filteredFiles: any[],
+    filteredFiles: FileItem[],
     searchQuery: string,
     selectedFiles: string[],
     setSelectedFiles: (files: string[]) => void,
-    handleFileAction: (action: string, file: any) => void,
+    handleFileAction: (action: string, file: FileItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,
     toggleSelection: (fileId: string) => void,
