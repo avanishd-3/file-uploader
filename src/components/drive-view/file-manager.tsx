@@ -466,45 +466,10 @@ export default function FileManager() {
       </CardContent>
 
       {/* Upload Modal */}
-      <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Upload File</DialogTitle>
-            <DialogDescription>Drag and drop a file or click to browse.</DialogDescription>
-          </DialogHeader>
-
-          <div
-            className="border-2 border-dashed rounded-lg p-12 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-            onClick={() => {
-              if (!uploadingFile) {
-                simulateUpload("New Document.pdf")
-              }
-            }}
-          >
-            <div className="flex flex-col items-center">
-              <Upload className="h-10 w-10 text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground mb-1">Drag and drop your file here or click to browse</p>
-              <p className="text-xs text-muted-foreground">Supports PDF, DOCX, JPG, PNG, and more</p>
-            </div>
-          </div>
-
-          {uploadingFile && (
-            <div className="mt-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">{uploadingFile}</span>
-                <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
-              </div>
-              <Progress value={uploadProgress} className="h-2" />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUploadModalOpen(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <UploadModal
+        uploadModalOpen={uploadModalOpen}
+        setUploadModalOpen={setUploadModalOpen}
+      />
 
       {/* New Folder Modal */}
       <Dialog open={newFolderModalOpen} onOpenChange={setNewFolderModalOpen}>
