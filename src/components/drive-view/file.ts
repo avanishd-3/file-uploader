@@ -1,25 +1,22 @@
-
-// File types
-export type FileorFolderType = "folder" | "pdf" | "image" | "document" | "code" | "other"
-export type FileType = "pdf" | "image" | "document" | "code" | "other"
-export type FolderType = "folder"
-
-// File interface
-export interface FileorFolderItem {
+// Folder type
+export interface FolderItem {
   id: string
   name: string
-  type: FileorFolderType
-  size: string
-  items?: number
+  type: "folder" // So can get proper icon
+  items: number
   modified: Date
-  path: string[]
+  parentId: string | null
 }
 
-// File and folder item interfaces
-export interface FileItem extends FileorFolderItem {
-  type: Exclude<FileorFolderType, "folder">
+// File type
+export interface FileItem {
+  id: string
+  name: string
+  type: "pdf" | "image" | "document" | "code" | "other"
+  size: string
+  modified: Date
+  parentId: string | null
 }
 
-export interface FolderItem extends FileorFolderItem {
-  type: "folder"
-}
+export type FileorFolderType = FileItem["type"] | FolderItem["type"]
+export type FileorFolderItem = FileItem | FolderItem

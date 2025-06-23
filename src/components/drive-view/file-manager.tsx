@@ -36,82 +36,12 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileItem, FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
-
-// Sample data
-const sampleFiles: FileorFolderItem[] = [
-  {
-    id: "1",
-    name: "Documents",
-    type: "folder",
-    size: "",
-    items: 5,
-    modified: new Date("2024-01-20"),
-    path: ["Home"],
-  },
-  {
-    id: "2",
-    name: "Images",
-    type: "folder",
-    size: "",
-    items: 12,
-    modified: new Date("2024-01-18"),
-    path: ["Home"],
-  },
-  {
-    id: "3",
-    name: "Project Files",
-    type: "folder",
-    size: "",
-    items: 8,
-    modified: new Date("2024-01-15"),
-    path: ["Home"],
-  },
-  {
-    id: "4",
-    name: "Annual Report.pdf",
-    type: "pdf",
-    size: "2.4 MB",
-    modified: new Date("2024-01-10"),
-    path: ["Home"],
-  },
-  {
-    id: "5",
-    name: "Presentation.pdf",
-    type: "pdf",
-    size: "3.8 MB",
-    modified: new Date("2024-01-05"),
-    path: ["Home"],
-  },
-  {
-    id: "6",
-    name: "Profile Picture.jpg",
-    type: "image",
-    size: "1.2 MB",
-    modified: new Date("2023-12-28"),
-    path: ["Home"],
-  },
-  {
-    id: "7",
-    name: "Meeting Notes.docx",
-    type: "document",
-    size: "245 KB",
-    modified: new Date("2023-12-20"),
-    path: ["Home"],
-  },
-  {
-    id: "8",
-    name: "main.js",
-    type: "code",
-    size: "56 KB",
-    modified: new Date("2023-12-15"),
-    path: ["Home"],
-  },
-]
+import { sampleFiles, sampleFilesAndFolders, sampleFolders } from "./sampleFiles"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -153,10 +83,10 @@ function MoveDestinationFolder({
 export default function FileManager() {
 
   // Non-modal states
-  const [files, setFiles] = useState<FileorFolderItem[]>(sampleFiles)
+  const [files, setFiles] = useState<FileorFolderItem[]>(sampleFilesAndFolders)
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
-  const [currentPath, setCurrentPath] = useState<string[]>(["Home"])
+  const [currentParentId, setCurrentParentId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
 
   // Modals state
@@ -172,11 +102,25 @@ export default function FileManager() {
   const [newFolderName, setNewFolderName] = useState("")
   const [newFileName, setNewFileName] = useState("")
 
-  // Filter files based on current path and search query
+  // Helper to build breadcrumb trail from root to current folder
+  const getBreadcrumbTrail = (): FolderItem[] => {
+    const trail: FolderItem[] = []
+    let parentId = currentParentId
+    while (parentId) {
+      const folder = files.find(f => f.id === parentId && f.type === "folder") as FolderItem | undefined
+      if (!folder) break
+      trail.unshift(folder)
+      parentId = folder.parentId
+    }
+    return trail
+  }
+  const breadcrumbTrail = getBreadcrumbTrail()
+
+  // Filter files based on current parentId and search query
   const filteredFiles = files.filter((file) => {
-    const pathMatch = JSON.stringify(file.path) === JSON.stringify(currentPath)
+    const parentMatch = file.parentId === (currentParentId ?? null)
     const searchMatch = searchQuery === "" || file.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return pathMatch && searchMatch
+    return parentMatch && searchMatch
   })
 
   // Handle file/folder selection
@@ -195,13 +139,14 @@ export default function FileManager() {
 
   // Handle folder navigation
   const navigateToFolder = (folder: FolderItem) => {
-    setCurrentPath([...folder.path, folder.name])
+    setCurrentParentId(folder.id)
     setSelectedFiles([])
   }
 
   // Handle breadcrumb navigation
   const navigateToBreadcrumb = (index: number) => {
-    setCurrentPath(currentPath.slice(0, index + 1))
+    const newParentId = breadcrumbTrail[index]?.id ?? null
+    setCurrentParentId(newParentId)
     setSelectedFiles([])
   }
 
@@ -258,10 +203,9 @@ export default function FileManager() {
       id: Date.now().toString(),
       name: newFolderName,
       type: "folder",
-      size: "",
       items: 0,
       modified: new Date(),
-      path: currentPath,
+      parentId: currentParentId ?? null,
     }
 
     setFiles((prev) => [...prev, newFolder])
@@ -300,14 +244,20 @@ export default function FileManager() {
 
           {/* Breadcrumb */}
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            {currentPath.map((path, index) => (
-              <div key={index} className="flex items-center">
-                {index > 0 && <ChevronRight className="h-4 w-4 mx-1" />}
+            <button
+              onClick={() => navigateToBreadcrumb(-1)}
+              className={`hover:text-primary ${breadcrumbTrail.length === 0 ? "font-medium text-primary" : ""}`}
+            >
+              Home
+            </button>
+            {breadcrumbTrail.map((folder, index) => (
+              <div key={folder.id} className="flex items-center">
+                <ChevronRight className="h-4 w-4 mx-1" />
                 <button
                   onClick={() => navigateToBreadcrumb(index)}
-                  className={`hover:text-primary ${index === currentPath.length - 1 ? "font-medium text-primary" : ""}`}
+                  className={`hover:text-primary ${index === breadcrumbTrail.length - 1 ? "font-medium text-primary" : ""}`}
                 >
-                  {path}
+                  {folder.name}
                 </button>
               </div>
             ))}

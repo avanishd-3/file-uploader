@@ -13,19 +13,19 @@ import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
-import type { FileorFolderItem, FileorFolderType } from "./file"
+import type { FileItem, FolderItem, FileorFolderType } from "./file"
 import type { JSX } from "react"
 
 {/* List layout for files and folders */}
 export function TableList(
-    { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
+    { filteredFiles, searchQuery, selectedFiles, setSelectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelectAll, toggleSelection, getFileIcon }
 : {
-    filteredFiles: FileorFolderItem[],
+    filteredFiles: (FileItem | FolderItem)[],
     searchQuery: string,
     selectedFiles: string[],
     setSelectedFiles: (files: string[]) => void,
-    handleFileAction: (action: string, file: FileorFolderItem) => void,
+    handleFileAction: (action: string, file: FileItem | FolderItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,
     toggleSelectAll: () => void,
@@ -63,6 +63,7 @@ export function TableList(
                       />
                     </TableCell>
                     <TableCell>
+                      {/* Part that shows icon and file name */}
                       <div
                         className="flex items-center space-x-2 cursor-pointer"
                         onClick={() => handleFileAction("open", file)}
@@ -72,7 +73,7 @@ export function TableList(
                       </div>
                     </TableCell>
                     <TableCell>
-                      {file.type === "folder" ? `${file.items} item${file.items !== 1 ? "s" : ""}` : file.size}
+                      {file.type === "folder" ? `${(file as FolderItem).items} item${(file as FolderItem).items !== 1 ? "s" : ""}` : (file as FileItem).size}
                     </TableCell>
                     <TableCell>{formatDate(file.modified)}</TableCell>
                     <TableCell>

@@ -11,20 +11,20 @@ import { TabsContent } from "@/components/ui/tabs"
 import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { EmptyState } from "./empty-state"
-import type { FileorFolderItem, FileorFolderType } from "./file"
+import type { FileItem, FolderItem, FileorFolderType } from "./file"
 import type { JSX } from "react"
 
 
 {/* Grid layout for files and folders */}
 export function TableGrid(
-    { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
+    { filteredFiles, searchQuery, selectedFiles, setSelectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelection, getFileIcon }
 : {
-    filteredFiles: FileorFolderItem[],
+    filteredFiles: (FileItem | FolderItem)[],
     searchQuery: string,
     selectedFiles: string[],
     setSelectedFiles: (files: string[]) => void,
-    handleFileAction: (action: string, file: FileorFolderItem) => void,
+    handleFileAction: (action: string, file: FileItem | FolderItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,
     toggleSelection: (fileId: string) => void,
@@ -57,7 +57,7 @@ export function TableGrid(
                 <div className="text-center">
                   <p className="font-medium truncate w-full max-w-[120px]">{file.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {file.type === "folder" ? `${file.items} item${file.items !== 1 ? "s" : ""}` : file.size}
+                    {file.type === "folder" ? `${(file as FolderItem).items} item${(file as FolderItem).items !== 1 ? "s" : ""}` : (file as FileItem).size}
                   </p>
                 </div>
               </div>
