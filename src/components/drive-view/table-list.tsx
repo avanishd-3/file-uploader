@@ -18,13 +18,12 @@ import type { JSX } from "react"
 
 {/* List layout for files and folders */}
 export function TableList(
-    { filteredFiles, searchQuery, selectedFiles, setSelectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
+    { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelectAll, toggleSelection, getFileIcon }
 : {
     filteredFiles: (FileItem | FolderItem)[],
     searchQuery: string,
     selectedFiles: string[],
-    setSelectedFiles: (files: string[]) => void,
     handleFileAction: (action: string, file: FileItem | FolderItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,

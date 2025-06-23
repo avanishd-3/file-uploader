@@ -17,13 +17,12 @@ import type { JSX } from "react"
 
 {/* Grid layout for files and folders */}
 export function TableGrid(
-    { filteredFiles, searchQuery, selectedFiles, setSelectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
+    { filteredFiles, searchQuery, selectedFiles, handleFileAction, setNewFolderModalOpen, setUploadModalOpen, 
         toggleSelection, getFileIcon }
 : {
     filteredFiles: (FileItem | FolderItem)[],
     searchQuery: string,
     selectedFiles: string[],
-    setSelectedFiles: (files: string[]) => void,
     handleFileAction: (action: string, file: FileItem | FolderItem) => void,
     setNewFolderModalOpen: (open: boolean) => void,
     setUploadModalOpen: (open: boolean) => void,

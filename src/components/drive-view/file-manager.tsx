@@ -36,12 +36,12 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileItem, FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
-import { sampleFiles, sampleFilesAndFolders, sampleFolders } from "./sampleFiles"
+import { sampleFilesAndFolders } from "./sampleFiles"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -117,6 +117,8 @@ export default function FileManager() {
   const breadcrumbTrail = getBreadcrumbTrail()
 
   // Filter files based on current parentId and search query
+
+  // If search query is empty, show all files/folders in the current parent folder
   const filteredFiles = files.filter((file) => {
     const parentMatch = file.parentId === (currentParentId ?? null)
     const searchMatch = searchQuery === "" || file.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -343,13 +345,14 @@ export default function FileManager() {
       <CardContent className="p-0">
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "list" | "grid")}>
           {/* List layout for files and folders */}
+
+          {/* Should render all children of current parentId */}
           <TableList
             filteredFiles={filteredFiles}
             selectedFiles={selectedFiles}
             toggleSelection={toggleSelection}
             handleFileAction={handleFileAction}
             searchQuery={searchQuery}
-            setSelectedFiles={setSelectedFiles}
             setNewFolderModalOpen={setNewFolderModalOpen}
             setUploadModalOpen={setUploadModalOpen}
             toggleSelectAll={toggleSelectAll}
@@ -358,13 +361,14 @@ export default function FileManager() {
           
 
           {/* Grid layout for files and folders */}
+
+          {/* Should render all children of current parentId */}
           <TableGrid
             filteredFiles={filteredFiles}
             selectedFiles={selectedFiles}
             toggleSelection={toggleSelection}
             handleFileAction={handleFileAction}
             searchQuery={searchQuery}
-            setSelectedFiles={setSelectedFiles}
             setNewFolderModalOpen={setNewFolderModalOpen}
             setUploadModalOpen={setUploadModalOpen}
             getFileIcon={getIcon}

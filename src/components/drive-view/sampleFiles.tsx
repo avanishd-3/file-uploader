@@ -33,7 +33,7 @@ export const sampleFolders: FolderItem[] = [
     type: "folder",
     items: 20,
     modified: new Date("2023-12-30"),
-    parentId: "Documents",
+    parentId: "1",
   },
   {
     id: "10",
@@ -86,7 +86,7 @@ export const sampleFiles: FileItem[] = [
     type: "code",
     size: "56 KB",
     modified: new Date("2023-12-15"),
-    parentId: null,
+    parentId: "1",
   },
 ];
 
