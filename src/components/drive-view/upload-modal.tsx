@@ -8,17 +8,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { FileUploadwithLoadingState } from "../file-upload-loading";
+import { FileUploadBox } from "../file-upload-box";
 
 import { Button } from "@/components/ui/button"
-import React from "react";
+import React, { type Dispatch, type SetStateAction } from "react";
+import type { FileorFolderItem } from "./file";
 
 export const UploadModal = ({
   uploadModalOpen,
   setUploadModalOpen,
+  setCurrFiles,
+  currParentId
 }: {
   uploadModalOpen: boolean;
   setUploadModalOpen: (open: boolean) => void;
+  setCurrFiles: Dispatch<SetStateAction<FileorFolderItem[]>>
+  currParentId: string | null;
 }) => {
     return (
         <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
@@ -29,7 +34,10 @@ export const UploadModal = ({
             </DialogHeader>
 
             {/* File upload stuff */}
-            <FileUploadwithLoadingState />
+            <FileUploadBox 
+              setCurrFiles={setCurrFiles}
+              currParentId={currParentId}
+            />
 
             <DialogFooter>
                 <Button variant="outline" onClick={() => setUploadModalOpen(false)}>

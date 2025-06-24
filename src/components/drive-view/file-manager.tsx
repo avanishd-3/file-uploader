@@ -380,6 +380,8 @@ export default function FileManager() {
       <UploadModal
         uploadModalOpen={uploadModalOpen}
         setUploadModalOpen={setUploadModalOpen}
+        setCurrFiles={setFiles}
+        currParentId={currentParentId}
       />
 
       {/* New Folder Modal */}

@@ -16,6 +16,7 @@ export interface FileItem {
   size: string
   modified: Date
   parentId: string | null
+  url: string // URL to access the file
 }
 
 export type FileorFolderType = FileItem["type"] | FolderItem["type"]

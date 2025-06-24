@@ -55,6 +55,7 @@ export const sampleFiles: FileItem[] = [
     size: "2.4 MB",
     modified: new Date("2024-01-10"),
     parentId: null,
+    url: "/uploads/annual_report.pdf", // Example URL, adjust as needed
   },
   {
     id: "5",
@@ -63,6 +64,7 @@ export const sampleFiles: FileItem[] = [
     size: "3.8 MB",
     modified: new Date("2024-01-05"),
     parentId: null,
+    url: "/uploads/presentation.pdf", // Example URL, adjust as needed
   },
   {
     id: "6",
@@ -71,6 +73,7 @@ export const sampleFiles: FileItem[] = [
     size: "1.2 MB",
     modified: new Date("2023-12-28"),
     parentId: null,
+    url: "/uploads/profile_picture.jpg", // Example URL, adjust as needed
   },
   {
     id: "7",
@@ -79,6 +82,7 @@ export const sampleFiles: FileItem[] = [
     size: "245 KB",
     modified: new Date("2023-12-20"),
     parentId: null,
+    url: "/uploads/meeting_notes.docx", // Example URL, adjust as needed
   },
   {
     id: "8",
@@ -87,6 +91,7 @@ export const sampleFiles: FileItem[] = [
     size: "56 KB",
     modified: new Date("2023-12-15"),
     parentId: "1",
+    url: "/uploads/main.js", // Example URL, adjust as needed
   },
 ];
 
