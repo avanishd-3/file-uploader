@@ -66,8 +66,11 @@ export async function moveFile(
             .where(eq(folder.id, newParentId));
     }
 
-    // Wait for both updates to complete (filter out any undefined promises)
-    (await Promise.all([decrementPromise, incrementPromise])).filter(Boolean);
+    // Filter out any undefined promises to avoid errors
+    const filteredPromises = [decrementPromise, incrementPromise].filter(p => p !== undefined && p !== null);
+
+    // Length of filteredPromises should be 1 or 2, since file is being moved out of null parent or into null parent at worst
+    await Promise.all(filteredPromises);
 
     // If the file is being moved to a new parent, update the parentId
     return db.update(file).set({ parentId: newParentId }).where(eq(file.id, fileId));
