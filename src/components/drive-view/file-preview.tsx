@@ -11,7 +11,7 @@ import { ImageIcon,
     FileIcon as FilePDF,
     FileText
 } from "lucide-react"
-import type { FileorFolderItem, FileorFolderType } from "./file"
+import type { FileItem, FileorFolderItem, FileorFolderType } from "./file"
 
 
 export function FilePreview({  previewModalOpen,
@@ -54,7 +54,8 @@ export function FilePreview({  previewModalOpen,
           <div className="flex justify-between items-center">
             <div>
               <Badge variant="outline" className="mr-2">
-                {activeFile?.size || "Unknown size"}
+                {/* Active File can be null, so leave the question or there will be runtime error */}
+                {(activeFile as FileItem)?.size || "Unknown size"}
               </Badge>
               <Badge variant="outline">{formatDate(activeFile?.modified || new Date())}</Badge>
             </div>
