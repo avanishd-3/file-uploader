@@ -1,8 +1,8 @@
 // Example model schema from the Drizzle docs
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
-import { sql } from "drizzle-orm";
-import { index, pgTableCreator } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
+import { foreignKey, index, pgSequence, pgTable, pgTableCreator, uuid, varchar } from "drizzle-orm/pg-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -12,16 +12,48 @@ import { index, pgTableCreator } from "drizzle-orm/pg-core";
  */
 export const createTable = pgTableCreator((name) => `file-uploader_${name}`);
 
-export const posts = createTable(
-  "post",
+// Folder Schema
+export const folder = createTable(
+  "folder",
   (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+    id: d.uuid().primaryKey().defaultRandom(), // Use UUIDs for folders
+  //  id: d.integer().primaryKey().default(sql`nextval('file_uploader_id_seq')`), // Use the same sequence as files
+    name: d.text().notNull(),
+    type: d.varchar({ enum: ["folder"] }).notNull(),
+    items: d.integer().notNull(),
+    modified: d.timestamp({ withTimezone: true }).notNull(),
+    parentId: d.uuid(),
+  }),
+  (t) => [
+    // Ensure parentId is a foreign key to the folder table itself
+
+    // Need to do this because type inference on self-referential foreign keys is broken
+
+    // See: https://github.com/drizzle-team/drizzle-orm/discussions/236
+    foreignKey({
+      columns: [t.parentId],
+      foreignColumns: [t.parentId],
+    }).onDelete("cascade"), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
+    index("name_idx").on(t.name),
+  ]
+);
+
+// File Schema
+export const file = createTable(
+  "file",
+  (d) => ({
+    id: d.uuid().primaryKey().defaultRandom(), // Use UUIDs for files
+    name: d.text().notNull(),
+    type: d.varchar({ enum: ["pdf", "image", "document", "code", "other"] }).notNull(),
+    size: d.varchar({ length: 64 }).notNull(),
+    modified: d.timestamp({ withTimezone: true }).notNull(),
+    parentId: d.uuid().references(() => folder.id, { onDelete: "cascade"}), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
+    url: d.text().notNull()
   }),
   (t) => [index("name_idx").on(t.name)],
 );
+
+// 1-to-many relationship between folders and files
+export const foldersRelations = relations(folder, ({ many}) => ({
+  files: many(file),
+}))
