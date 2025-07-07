@@ -1,10 +1,10 @@
-import FileManager from "@/components/drive-view/file-manager";
+import DriveUI from "@/components/drive-page";
 
-export default function DrivePage() {
+export default async function DriveRootPage() {
+    const parentId = null;
+    
+    // Use Drive Page to render file manager (so can duplicate for /drive)
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center">
-            <FileManager />
-        </main>
+        <DriveUI parentId={parentId} />
     )
-
 }

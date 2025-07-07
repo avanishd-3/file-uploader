@@ -1,6 +1,6 @@
 "use client"
 
-import { useState} from "react"
+import { use, useState, useTransition} from "react"
 import {
   ChevronRight,
   FileText,
@@ -36,12 +36,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileItem, FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
-import { sampleFilesAndFolders } from "./sampleFiles"
+
+import { useParams, useRouter } from "next/navigation"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -80,14 +81,32 @@ function MoveDestinationFolder({
   )
 }
 
-export default function FileManager() {
+export default function FileManager(
+  {
+  initialItems,
+  } : {
+  initialItems: FileorFolderItem[],
+  }
+) {
+
+  // Get initial files and folders from db based on route params
+
+  const router = useRouter() // Need router to navigate between folders
+  const params = useParams() // To get the current folderId from the URL
+
+  // Make sure type is string | null, not string | string[] | null
+  // This is because Next.js params can be an array if the route is dynamic
+  let currentParentId = params.folderId ?? null
+  if (Array.isArray(currentParentId)) {
+    console.warn("currentParentId should be a string or null, not an array. Using first element.")
+    currentParentId = currentParentId[0] || null
+  }
 
   // Non-modal states
-  const [files, setFiles] = useState<FileorFolderItem[]>(sampleFilesAndFolders)
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
-  const [currentParentId, setCurrentParentId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isPending, startTransition] = useTransition()
 
   // Modals state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -98,28 +117,34 @@ export default function FileManager() {
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [activeFile, setActiveFile] = useState<FileorFolderItem | null>(null)
 
+  // Get files and folders from the database
+  const [filesandFolders, setFilesandFolders] = useState<FileorFolderItem[]>(initialItems);
+
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
   const [newFileName, setNewFileName] = useState("")
 
+  // TODO -> Fix this
   // Helper to build breadcrumb trail from root to current folder
   const getBreadcrumbTrail = (): FolderItem[] => {
     const trail: FolderItem[] = []
     let parentId = currentParentId
     while (parentId) {
-      const folder = files.find(f => f.id === parentId && f.type === "folder") as FolderItem | undefined
+      const folder = filesandFolders.find(f => f.id === parentId && f.type === "folder") as FolderItem | undefined
+      console.log(filesandFolders)
       if (!folder) break
       trail.unshift(folder)
       parentId = folder.parentId
     }
     return trail
   }
+  
   const breadcrumbTrail = getBreadcrumbTrail()
 
   // Filter files based on current parentId and search query
 
   // If search query is empty, show all files/folders in the current parent folder
-  const filteredFiles = files.filter((file) => {
+  const filteredFiles = filesandFolders.filter((file) => {
     const parentMatch = file.parentId === (currentParentId ?? null)
     const searchMatch = searchQuery === "" || file.name.toLowerCase().includes(searchQuery.toLowerCase())
     return parentMatch && searchMatch
@@ -141,15 +166,30 @@ export default function FileManager() {
 
   // Handle folder navigation
   const navigateToFolder = (folder: FolderItem) => {
-    setCurrentParentId(folder.id)
+    router.push(`/drive/${folder.id}`) // Navigate to the folder's URL
+    setNewFolderName("") // Reset new folder name
+    setSearchQuery("") // Clear search query
     setSelectedFiles([])
   }
 
   // Handle breadcrumb navigation
   const navigateToBreadcrumb = (index: number) => {
     const newParentId = breadcrumbTrail[index]?.id ?? null
-    setCurrentParentId(newParentId)
-    setSelectedFiles([])
+
+    // Reset state and navigate
+    setNewFolderName("") // Reset new folder name
+    setSearchQuery("") // Clear search query
+    setSelectedFiles([]) // Reset selected files
+
+    if (newParentId === currentParentId) {
+      return // No need to navigate if already in the same folder
+    }
+    else if (newParentId === null) {
+      router.push("/drive") // Navigate to root if no parent
+    }
+    else {
+      router.push(`/drive/${newParentId}`) // Navigate to the folder's URL
+    }
   }
 
   // Handle file actions
@@ -197,6 +237,8 @@ export default function FileManager() {
     }
   }
 
+  /* TODO -> Update all of these functions to use the database instead of local state */
+
   // Create new folder
   const createNewFolder = () => {
     if (newFolderName.trim() === "") return
@@ -210,7 +252,7 @@ export default function FileManager() {
       parentId: currentParentId ?? null,
     }
 
-    setFiles((prev) => [...prev, newFolder])
+    setFilesandFolders((prev) => [...prev, newFolder])
     setNewFolderName("") // Reset folder name input
     setNewFolderModalOpen(false)
   }
@@ -219,7 +261,7 @@ export default function FileManager() {
   const renameFile = () => {
     if (!activeFile || newFileName.trim() === "") return
 
-    setFiles((prev) => prev.map((file) => (file.id === activeFile.id ? { ...file, name: newFileName } : file)))
+    setFilesandFolders((prev) => prev.map((file) => (file.id === activeFile.id ? { ...file, name: newFileName } : file)))
 
     setRenameModalOpen(false)
     setActiveFile(null) 
@@ -228,10 +270,10 @@ export default function FileManager() {
   // Delete file/folder
   const deleteFiles = () => {
     if (selectedFiles.length > 0) {
-      setFiles((prev) => prev.filter((file) => !selectedFiles.includes(file.id)))
+      setFilesandFolders((prev) => prev.filter((file) => !selectedFiles.includes(file.id)))
       setSelectedFiles([])
     } else if (activeFile) {
-      setFiles((prev) => prev.filter((file) => file.id !== activeFile.id))
+      setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id))
       setActiveFile(null)
     }
 
@@ -380,7 +422,7 @@ export default function FileManager() {
       <UploadModal
         uploadModalOpen={uploadModalOpen}
         setUploadModalOpen={setUploadModalOpen}
-        setCurrFiles={setFiles}
+        setCurrFiles={setFilesandFolders}
         currParentId={currentParentId}
       />
 
@@ -494,7 +536,7 @@ export default function FileManager() {
                 }}
               />
 
-              {files
+              {filesandFolders
                 .filter((file) => file.type === "folder")
                 .map((folder) => (
                   <MoveDestinationFolder
