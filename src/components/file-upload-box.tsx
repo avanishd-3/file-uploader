@@ -18,6 +18,7 @@ import * as React from "react";
 import { toast, Toaster } from "sonner";
 import type { FileItem, FileorFolderItem } from "./drive-view/file";
 import type { Dispatch, SetStateAction } from "react";
+import { createFileAction, getFilesandFoldersAction } from "@/lib/actions";
 
 const getFileType = (fileName: string): FileItem["type"] => {
   /* This function determines the type of file based on its extension. */
@@ -109,10 +110,22 @@ export const FileUploadBox = ({
                 }
               };
 
-              xhr.onload = () => {
+              xhr.onload = async () => {
                 if (xhr.status === 200) {
                   onSuccess(file);
+                  
+                  await createFileAction(
+                    file.name,
+                    getFileType(file.name),
+                    convertFileSize(file.size),
+                    new Date(),
+                    currParentId,
+                    // TODO -> Switch to using file URL from server response
+                    `/uploads/${file.name}`, // Assumes file is saved in the public/uploads directory
+                  )
+
                   resolve();
+
                 } else {
                   onError(file, new Error(xhr.responseText || "Upload failed"));
                   reject(new Error(xhr.responseText || "Upload failed"));
@@ -137,25 +150,18 @@ export const FileUploadBox = ({
         // Wait for all uploads to complete
         await Promise.all(uploadPromises);
 
-        // Add file to sampleFiles array
-        // TODO -> Switch array to database
-
-        const newFiles: FileItem[] = files.map((file) => ({
-          id: crypto.randomUUID(), // Generate a unique ID for each file
-          name: file.name,
-          size: convertFileSize(file.size), // Convert file size to a human-readable format
-          type: getFileType(file.name), // Determine file type based on extension
-          modified: new Date(), // Set current date as modified date
-          parentId: currParentId, // Use the current parent ID
-          url: `/uploads/${file.name}`, // Assuming the file is saved in the public/uploads directory
-          // TODO -> Use file URL from server response, so it can be Supabase or S3
-        }));
-
-
-        setCurrFiles((prevFiles) => [...prevFiles, ...newFiles]);
-
-        // Show success message after all uploads are done
+         // Show success message after all uploads are done
         toast.success("File uploaded successfully!");
+
+        // Update file list by fetching new list from server
+        const newFiles = await getFilesandFoldersAction(currParentId);
+
+        // Replace previous files with new ones
+        // This ensures that the UI reflects the latest state of files
+        // and folders in the current directory
+        setCurrFiles((prevFiles) => newFiles);
+
+       
       } catch (error) {
         // This handles any error that might occur outside the individual upload processes
         console.error("Unexpected error during upload:", error);
