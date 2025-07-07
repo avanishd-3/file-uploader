@@ -2,7 +2,7 @@
 // https://orm.drizzle.team/docs/sql-schema-declaration
 
 import { relations, sql } from "drizzle-orm";
-import { foreignKey, index, pgSequence, pgTable, pgTableCreator, uuid, varchar } from "drizzle-orm/pg-core";
+import { foreignKey, index, pgSchema, PgSchema, pgSequence, pgTable, pgTableCreator, uuid, varchar } from "drizzle-orm/pg-core";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -17,7 +17,6 @@ export const folder = createTable(
   "folder",
   (d) => ({
     id: d.uuid().primaryKey().defaultRandom(), // Use UUIDs for folders
-  //  id: d.integer().primaryKey().default(sql`nextval('file_uploader_id_seq')`), // Use the same sequence as files
     name: d.text().notNull(),
     type: d.varchar({ enum: ["folder"] }).notNull(),
     items: d.integer().notNull(),
@@ -34,7 +33,7 @@ export const folder = createTable(
       columns: [t.parentId],
       foreignColumns: [t.parentId],
     }).onDelete("cascade"), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
-    index("name_idx").on(t.name),
+    index("folder_name_idx").on(t.id),
   ]
 );
 
@@ -50,10 +49,18 @@ export const file = createTable(
     parentId: d.uuid().references(() => folder.id, { onDelete: "cascade"}), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
     url: d.text().notNull()
   }),
-  (t) => [index("name_idx").on(t.name)],
+  (t) => [index("file_name_idx").on(t.id)],
 );
 
 // 1-to-many relationship between folders and files
 export const foldersRelations = relations(folder, ({ many}) => ({
   files: many(file),
-}))
+}));
+
+// Need to define reverse relationship for Drizzle Studio to work properly
+export const filesRelations = relations(file, ({ one }) => ({
+  folder: one(folder, {
+    fields: [file.parentId],
+    references: [folder.id],
+  }),
+}));
