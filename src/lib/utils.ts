@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format } from "date-fns"
 
+/* These utils can be used on both client and server */
 
 // Makes it easier to merge class names conditionally
 // and handle Tailwind CSS conflicts
