@@ -221,8 +221,6 @@ export const FileUploadBox = ({
           ))}
         </FileUploadList>
       </FileUpload>
-      <Toaster>
-      </Toaster>
     </> 
   );
 }
