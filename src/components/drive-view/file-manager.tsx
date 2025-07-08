@@ -126,21 +126,6 @@ export default function FileManager(
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
   const [newFileName, setNewFileName] = useState("")
-
-  // TODO -> Fix this
-  // Helper to build breadcrumb trail from root to current folder
-  const getBreadcrumbTrail = (): FolderItem[] => {
-    const trail: FolderItem[] = []
-    let parentId = currentParentId
-    while (parentId) {
-      const folder = filesandFolders.find(f => f.id === parentId && f.type === "folder") as FolderItem | undefined
-      console.log(filesandFolders)
-      if (!folder) break
-      trail.unshift(folder)
-      parentId = folder.parentId
-    }
-    return trail
-  }
   
   // Filter files based on current parentId and search query
 
