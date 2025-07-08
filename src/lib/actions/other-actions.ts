@@ -1,23 +1,27 @@
 "use server"
 
+import type { FolderItem } from "@/components/drive-view/file";
 import { getFilesByParentId } from "@/data-access/file-access";
 import { getFolderById, getFoldersByParentId } from "@/data-access/folder-access";
+import { getBreadCrumb } from "@/data-access/other-access";
 
 export async function getBreadcrumbsAction(parentId: string | null) {
-    const breadcrumbs = [];
-    let currentFolderId = parentId;
 
-    while (currentFolderId !== null) {
-        const folder = await getFolderById(currentFolderId);
-        if (folder) {
-            breadcrumbs.unshift(folder);
-            currentFolderId = folder.parentId;
-        } else {
-            break;
-        }
-    }
+    // Get the breadcrumb trail for the given parentId
+    const folders = await getBreadCrumb(parentId);
 
-    return breadcrumbs;
+    // Convert the breadcrumbs to FolderItem[]
+    const initialItems = folders.map((folder) => ({
+        id: folder.id,
+        name: folder.name,
+        parentId: folder.parentId,
+        items: folder.items || 0, // Default to 0 if items is not present
+        modified: folder.modified || new Date().toISOString(), // Default to current date if modified is not present
+        // TS needs to know that this is a folder, not just any string
+        type: "folder" as const, // Assumes all items in breadcrumbs are folders
+    }));
+
+    return initialItems as FolderItem[];
 }
 
 export async function getFilesandFoldersAction(parentId: string | null) {
