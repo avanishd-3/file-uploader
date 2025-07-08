@@ -159,7 +159,7 @@ export const FileUploadBox = ({
         // Replace previous files with new ones
         // This ensures that the UI reflects the latest state of files
         // and folders in the current directory
-        setCurrFiles((prevFiles) => newFiles);
+        setCurrFiles(() => newFiles);
 
        
       } catch (error) {
