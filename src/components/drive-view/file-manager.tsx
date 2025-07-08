@@ -43,7 +43,9 @@ import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
-import { createFolderAction, deleteFileAction, deleteFolderAction, getFilesandFoldersAction } from "@/lib/actions"
+import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
+import { createFolderAction, deleteFolderAction } from "@/lib/actions/folder-actions"
+import { deleteFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 
 // Helper function to get file icon

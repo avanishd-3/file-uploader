@@ -18,7 +18,8 @@ import * as React from "react";
 import { toast, Toaster } from "sonner";
 import type { FileItem, FileorFolderItem } from "./drive-view/file";
 import type { Dispatch, SetStateAction } from "react";
-import { createFileAction, getFilesandFoldersAction } from "@/lib/actions";
+import { getFilesandFoldersAction } from "@/lib/actions/other-actions";
+import { createFileAction } from "@/lib/actions/file-actions";
 
 const getFileType = (fileName: string): FileItem["type"] => {
   /* This function determines the type of file based on its extension. */

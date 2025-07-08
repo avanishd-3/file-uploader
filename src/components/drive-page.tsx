@@ -1,5 +1,5 @@
 import FileManager from "./drive-view/file-manager";
-import { getBreadcrumbsAction, getFilesandFoldersAction } from "@/lib/actions";
+import { getBreadcrumbsAction, getFilesandFoldersAction } from "@/lib/actions/other-actions";
 
 export default async function DriveUI({ parentId}: { parentId: string | null}) {
     // Fetch initial files and folders

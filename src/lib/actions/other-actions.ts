@@ -1,7 +1,7 @@
 "use server"
 
-import { createFolder, getFolderById, getFoldersByParentId } from "@/data-access/folder-access";
-import { createFile, getFilesByParentId } from "@/data-access/file-access";
+import { getFilesByParentId } from "@/data-access/file-access";
+import { getFolderById, getFoldersByParentId } from "@/data-access/folder-access";
 
 export async function getBreadcrumbsAction(parentId: string | null) {
     const breadcrumbs = [];
@@ -22,10 +22,10 @@ export async function getBreadcrumbsAction(parentId: string | null) {
 
 export async function getFilesandFoldersAction(parentId: string | null) {
     const [files, folders] = await Promise.all([
-            getFilesByParentId(parentId),
-            getFoldersByParentId(parentId),
-        ]);
-    
+        getFilesByParentId(parentId),
+        getFoldersByParentId(parentId),
+    ]);
+
     // Combine files and folders into a single array
     // Put folders first, so they are displayed at the top (this looks better)
     const initialStuff = [...folders, ...files];
@@ -34,21 +34,3 @@ export async function getFilesandFoldersAction(parentId: string | null) {
 
 }
 
-export async function createFileAction(
-    name: string,
-    type: "pdf" | "image" | "document" | "code" | "other",
-    size: string,
-    createdAt: Date,
-    parentId: string | null,
-    url: string
-) {
-    return await createFile(name, type, size, createdAt, parentId, url);
-}
-
-export async function createFolderAction(
-    name: string,
-    modifiedAt: Date,
-    parentId: string | null
-) {
-    return await createFolder(name, modifiedAt, parentId);
-}
