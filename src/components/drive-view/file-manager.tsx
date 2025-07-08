@@ -229,21 +229,15 @@ export default function FileManager(
   const createNewFolder = async () => {
     if (newFolderName.trim() === "") return
 
-    const newFolder: FolderItem = {
-      id: Date.now().toString(),
-      name: newFolderName,
-      type: "folder",
-      items: 0,
-      modified: new Date(),
-      parentId: currentParentId ?? null,
-    }
-
     // Add the new folder to the current parent folder's items
     await createFolderAction(
       newFolderName,
       new Date(),
       currentParentId ?? null
     )
+
+    // Add toast notification for folder creation
+    toast.success(`Folder "${newFolderName}" created successfully!`)
 
     // Update file list by fetching new list from server
     const newFiles = await getFilesandFoldersAction(currentParentId);
