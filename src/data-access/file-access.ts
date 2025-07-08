@@ -90,15 +90,34 @@ export async function createFile(
     parentId: string | null,
     url: string,
 ) {
-    // New file will increase the size of the parent folder by 1 if it is not a top-level file
+    // New file will increase the size of ancestors by 1 if it is not a top-level file
     if (parentId !== null) {
+
+        // Recursive SQL is mainly supported in PostgreSQL
+        // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
+        // See https://github.com/drizzle-team/drizzle-orm/issues/209
+        // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
+
+        const query = sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items + 1
+            WHERE id IN (SELECT id FROM ancestors)`;
+
         
-        // No need to join folder table b/c folder Id is already known
-        // so you can directly update the folder's item count
-        await db
-            .update(folder)
-            .set({ items: sql`${folder.items} + 1` })
-            .where(eq(folder.id, parentId));
+        await db.execute(query);
     }
     
     return db.insert(file).values({
