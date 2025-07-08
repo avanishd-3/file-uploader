@@ -240,7 +240,7 @@ export default function FileManager(
     )
 
     // Add toast notification for folder creation
-    toast.success(`Folder "${newFolderName}" created successfully!`)
+    toast.success(`${newFolderName} created successfully!`)
 
     // Update file list by fetching new list from server
     const newFiles = await getFilesandFoldersAction(currentParentId);
@@ -289,11 +289,11 @@ export default function FileManager(
       
       if (activeFile.type === "folder") {
         await deleteFolderAction(activeFile.id)
-        toast.success(`Folder "${activeFile.name}" deleted successfully!`)
+        toast.success(`${activeFile.name} deleted successfully!`)
       }
       else {
         await deleteFileAction(activeFile.id)
-        toast.success(`File "${activeFile.name}" deleted successfully!`)
+        toast.success(`${activeFile.name} deleted successfully!`)
       }
 
       // Remove the file from the list
