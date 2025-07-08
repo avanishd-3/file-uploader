@@ -12,6 +12,7 @@ export async function getBreadCrumb(parentId: string | null) {
 
     // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
     // See https://github.com/drizzle-team/drizzle-orm/issues/209
+    // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
 
     const query = sql`
         -- Use a recursive CTE to get all ancestors of the folder
