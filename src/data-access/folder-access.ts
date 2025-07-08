@@ -105,18 +105,38 @@ export async function deleteFolder(folderId: string) {
 
     // TODO -> Delete all files in folder from uploads directory / Supabase storage / S3 bucket
 
-    // Update the parent folder's item count if this folder has a parent
+    // Update ancestor item counts
     const currentFolder = await db.query.folder.findFirst({
         where: eq(folder.id, folderId),
         columns: { parentId: true, items: true },
     });
 
-    // Update the parent folder's item count if it exists
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
-        await db
-            .update(folder)
-            .set({ items: sql`${folder.items} - ${currentFolder.items}` }) // Decrement the item count by the number of items in the folder
-            .where(eq(folder.id, currentFolder.parentId));
+        // Recursive SQL is mainly supported in PostgreSQL
+        // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
+        // See https://github.com/drizzle-team/drizzle-orm/issues/209
+        // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
+
+        const query = sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${currentFolder.parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items - ${currentFolder.items} -- Decrement the item count by the number of items in the folder
+            WHERE id IN (SELECT id FROM ancestors)`;
+
+        
+        await db.execute(query);
     }
 
     // Delete folder itself
