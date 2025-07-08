@@ -45,3 +45,6 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# Public Upload Folder (will be replaced with Supabase or other S3 storage)
+/public/uploads

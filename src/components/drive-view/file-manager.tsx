@@ -268,6 +268,21 @@ export default function FileManager(
   // Delete file/folder
   const deleteFiles = async () => {
     if (selectedFiles.length > 0) {
+
+      // Separate into files and folders so db call can be done
+      const filesToDelete = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type !== "folder")
+      const foldersToDelete = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type === "folder")
+
+      const fileDeletePromise = filesToDelete.map((file) => deleteFileAction(file.id))
+      const folderDeletePromise = foldersToDelete.map((folder) => deleteFolderAction(folder.id))
+
+      await Promise.all([...fileDeletePromise, ...folderDeletePromise])
+
+      // Show generic success message since it looks better
+      toast.success('Selected items deleted successfully!')
+
+      // No need to fetch from server, because just deleting files or folders
+      // Create changes the order, so the updated list needs to be fetched from the server
       setFilesandFolders((prev) => prev.filter((file) => !selectedFiles.includes(file.id)))
       setSelectedFiles([])
     } else if (activeFile) {
@@ -285,7 +300,7 @@ export default function FileManager(
       // This ensures that the UI reflects the latest state of files
       // and folders in the current directory
 
-      // No need to fetch from server, because just deleting files
+      // No need to fetch from server, because just deleting a file or folder
       // Create changes the order, so the updated list needs to be fetched from the server
       setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id))
       setActiveFile(null)
