@@ -15,16 +15,20 @@ export async function getFolderById(folderId: string) {
 }
 
 export async function getFoldersByParentId(parentId: string | null) {
-    // If parentId is null, return all folders that do not have a parent (top-level folders)
+    // Get all files that belong to the specified parentId
+    // Sort by name to make it look better on the UI
+    // Faster than doing JS sort
+
     if (parentId === null) {
         return db.query.folder.findMany({
             where: (fields, { isNull }) => isNull(fields.parentId),
+            orderBy: (fields) => fields.name, 
         });
     }
 
-    // Otherwise, return folders that belong to the specified parentId
     return db.query.folder.findMany({
         where: eq(folder.parentId, parentId),
+        orderBy: (fields) => fields.name, 
     });
 }
 

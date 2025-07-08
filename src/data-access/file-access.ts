@@ -16,16 +16,21 @@ export async function getFileById(fileId: string) {
 }
 
 export async function getFilesByParentId(parentId: string | null) {
-    // If parentId is null, return all files that do not have a parent (top-level files)
+
+    // Get all files that belong to the specified parentId
+    // Sort by name to make it look better on the UI
+    // Faster than doing JS sort
+
     if (parentId === null) {
         return db.query.file.findMany({
             where: (fields, { isNull }) => isNull(fields.parentId),
+            orderBy: (fields) => fields.name,
         });
     }
 
-    // Otherwise, return files that belong to the specified parentId
     return db.query.file.findMany({
         where: eq(file.parentId, parentId),
+        orderBy: (fields) => fields.name,
     });
 }
 
