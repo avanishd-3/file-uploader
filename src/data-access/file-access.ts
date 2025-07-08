@@ -134,17 +134,38 @@ export async function createFile(
 export async function deleteFile(fileId: string) {
     // TODO -> Delete file from uploads directory / Supabase storage / S3 bucket
 
-    // Update parent folder's item count if the file has a parent
+    // Update ancestor item counts
     const currentFile = await db.query.file.findFirst({
         where: eq(file.id, fileId),
         columns: { parentId: true },
     });
 
     if (currentFile !== undefined && currentFile.parentId !== null) {
-        await db
-            .update(folder)
-            .set({ items: sql`${folder.items} - 1` })
-            .where(eq(folder.id, currentFile.parentId));
+        // Recursive SQL is mainly supported in PostgreSQL
+        // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
+        // See https://github.com/drizzle-team/drizzle-orm/issues/209
+        // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
+
+        const query = sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${currentFile.parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items - 1
+            WHERE id IN (SELECT id FROM ancestors)`;
+
+        
+        await db.execute(query);
     }
 
     return db.delete(file).where(eq(file.id, fileId));
