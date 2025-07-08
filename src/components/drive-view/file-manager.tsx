@@ -43,7 +43,8 @@ import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
-import { createFolderAction, getFilesandFoldersAction } from "@/lib/actions"
+import { createFolderAction, deleteFileAction, deleteFolderAction, getFilesandFoldersAction } from "@/lib/actions"
+import { toast, Toaster } from "sonner"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -579,6 +580,10 @@ export default function FileManager(
         formatDate={(date: Date) => formatDate(date)}
         getFileIcon={getIcon}
       />
+
+      {/* Toaster */}
+      <Toaster>
+      </Toaster>
     </Card>
   )
 }
