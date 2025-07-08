@@ -1,6 +1,6 @@
 "use server"
 
-import { getFolderById, getFoldersByParentId } from "@/data-access/folder-access";
+import { createFolder, getFolderById, getFoldersByParentId } from "@/data-access/folder-access";
 import { createFile, getFilesByParentId } from "@/data-access/file-access";
 
 export async function getBreadcrumbsAction(parentId: string | null) {
@@ -45,3 +45,10 @@ export async function createFileAction(
     return await createFile(name, type, size, createdAt, parentId, url);
 }
 
+export async function createFolderAction(
+    name: string,
+    modifiedAt: Date,
+    parentId: string | null
+) {
+    return await createFolder(name, modifiedAt, parentId);
+}

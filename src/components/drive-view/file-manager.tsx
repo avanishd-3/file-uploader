@@ -43,6 +43,7 @@ import { formatDate } from "@/lib/utils"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
+import { createFolderAction, getFilesandFoldersAction } from "@/lib/actions"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -240,7 +241,7 @@ export default function FileManager(
   /* TODO -> Update all of these functions to use the database instead of local state */
 
   // Create new folder
-  const createNewFolder = () => {
+  const createNewFolder = async () => {
     if (newFolderName.trim() === "") return
 
     const newFolder: FolderItem = {
@@ -252,7 +253,22 @@ export default function FileManager(
       parentId: currentParentId ?? null,
     }
 
-    setFilesandFolders((prev) => [...prev, newFolder])
+    // Add the new folder to the current parent folder's items
+    await createFolderAction(
+      newFolderName,
+      new Date(),
+      currentParentId ?? null
+    )
+
+    // Update file list by fetching new list from server
+    const newFiles = await getFilesandFoldersAction(currentParentId);
+
+    // Replace previous files with new ones
+    // This ensures that the UI reflects the latest state of files
+    // and folders in the current directory
+    setFilesandFolders(() => newFiles);
+    
+    // Reset state
     setNewFolderName("") // Reset folder name input
     setNewFolderModalOpen(false)
   }
