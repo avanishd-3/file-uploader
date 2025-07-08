@@ -263,11 +263,27 @@ export default function FileManager(
   }
 
   // Delete file/folder
-  const deleteFiles = () => {
+  const deleteFiles = async () => {
     if (selectedFiles.length > 0) {
       setFilesandFolders((prev) => prev.filter((file) => !selectedFiles.includes(file.id)))
       setSelectedFiles([])
     } else if (activeFile) {
+      
+      if (activeFile.type === "folder") {
+        await deleteFolderAction(activeFile.id)
+        toast.success(`Folder "${activeFile.name}" deleted successfully!`)
+      }
+      else {
+        await deleteFileAction(activeFile.id)
+        toast.success(`File "${activeFile.name}" deleted successfully!`)
+      }
+
+      // Remove the file from the list
+      // This ensures that the UI reflects the latest state of files
+      // and folders in the current directory
+
+      // No need to fetch from server, because just deleting files
+      // Create changes the order, so the updated list needs to be fetched from the server
       setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id))
       setActiveFile(null)
     }
