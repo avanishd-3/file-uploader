@@ -1,6 +1,6 @@
 "use server"
 
-import { createFolder, deleteFolder } from "@/data-access/folder-access";
+import { createFolder, deleteFolder, renameFolder } from "@/data-access/folder-access";
 
 export async function createFolderAction(
     name: string,
@@ -8,6 +8,16 @@ export async function createFolderAction(
     parentId: string | null
 ) {
     return await createFolder(name, modifiedAt, parentId);
+}
+
+export async function renameFolderAction(
+    folderId: string,
+    newName: string
+) {
+    // This function renames a folder
+    // It should be called when the user confirms renaming a folder
+    // It will not change the parentId or any other properties of the folder
+    return await renameFolder(folderId, newName);
 }
 
 export async function deleteFolderAction(folderId: string) {

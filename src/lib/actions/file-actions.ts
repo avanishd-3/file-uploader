@@ -1,6 +1,6 @@
 "use server"
 
-import { createFile, deleteFile } from "@/data-access/file-access";
+import { createFile, deleteFile, renameFile } from "@/data-access/file-access";
 
 export async function createFileAction(
     name: string,
@@ -12,6 +12,14 @@ export async function createFileAction(
 ) {
     return await createFile(name, type, size, createdAt, parentId, url);
 }
+
+export async function renameFileAction(fileId: string, newName: string) {
+    // This function renames a file
+    // It should be called when the user confirms renaming a file
+    // It will not change the parentId or any other properties of the file
+    return await renameFile(fileId, newName);
+}
+
 export async function deleteFileAction(fileId: string) {
     // This function deletes a file
     // It should be called when the user confirms deletion of a file

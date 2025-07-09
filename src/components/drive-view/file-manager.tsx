@@ -44,8 +44,8 @@ import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
-import { createFolderAction, deleteFolderAction } from "@/lib/actions/folder-actions"
-import { deleteFileAction } from "@/lib/actions/file-actions"
+import { createFolderAction, deleteFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
+import { deleteFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 
 // Helper function to get file icon
@@ -259,6 +259,16 @@ export default function FileManager(
   const renameFile = () => {
     if (!activeFile || newFileName.trim() === "") return
 
+    // Update folder or file name in the database
+    if (activeFile.type === "folder") {
+      renameFolderAction(activeFile.id, newFileName)
+    } else {
+      renameFileAction(activeFile.id, newFileName)
+    }
+
+    toast.success(`${activeFile.name} renamed to ${newFileName}`)
+
+    // No need to fetch from server, because just renaming a file or folder
     setFilesandFolders((prev) => prev.map((file) => (file.id === activeFile.id ? { ...file, name: newFileName } : file)))
 
     setRenameModalOpen(false)
