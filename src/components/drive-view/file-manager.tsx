@@ -328,6 +328,20 @@ export default function FileManager(
       // Separate into files and folders so db call can be done
       const filesToMove = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type !== "folder")
       const foldersToMove = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type === "folder")
+
+      const filestoMovePromise = filesToMove.map((file) => moveFileAction(file.id, newParentId))
+      const foldersToMovePromise = foldersToMove.map((folder) => moveFolderAction(folder.id, newParentId))
+
+      await Promise.all([...filestoMovePromise, ...foldersToMovePromise])
+
+      // Show generic success message since it looks better
+      toast.success('Selected items moved successfully!')
+
+      // Get file list from server (since items counts are being modified)
+      const newFiles = await getFilesandFoldersAction(currentParentId);
+      setFilesandFolders(newFiles);
+
+      setSelectedFiles([]) // Reset selected files
     } else if (activeFile) {
 
       console.log(`Moving ${activeFile.name} to parent ID: ${newParentId}`)
