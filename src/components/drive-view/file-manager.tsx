@@ -320,9 +320,6 @@ export default function FileManager(
       setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id))
       setActiveFile(null)
     }
-
-    
-    setDeleteModalOpen(false)
   }
 
   // Move file/folder
@@ -593,7 +590,10 @@ export default function FileManager(
             <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={deleteFiles}>
+            <Button variant="destructive" onClick={() => {
+              deleteFiles()
+              setDeleteModalOpen(false) // Close modal after deletion
+            }}>
               Delete
             </Button>
           </DialogFooter>
