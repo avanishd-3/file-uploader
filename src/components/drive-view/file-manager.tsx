@@ -572,9 +572,10 @@ export default function FileManager(
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
+              {/* Space after question mark so sentences have space between them */}
               {selectedFiles.length > 0
-                ? `Are you sure you want to delete ${selectedFiles.length} selected item${selectedFiles.length !== 1 ? "s" : ""}?`
-                : `Are you sure you want to delete "${activeFile?.name}"?`}
+                ? `Are you sure you want to delete ${selectedFiles.length} selected item${selectedFiles.length !== 1 ? "s" : ""}? `
+                : `Are you sure you want to delete ${activeFile?.name}? `}
               This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
