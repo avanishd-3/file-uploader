@@ -321,6 +321,7 @@ export default function FileManager(
       setActiveFile(null)
     }
 
+    setSelectedFiles([]) // Reset selected files
     setDeleteModalOpen(false)
   }
 
