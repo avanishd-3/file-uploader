@@ -1,6 +1,6 @@
 "use server"
 
-import { createFolder, deleteFolder, getAllFolders, getFolderById, renameFolder } from "@/data-access/folder-access";
+import { createFolder, deleteFolder, getAllFolders, getFolderById, moveFolder, renameFolder } from "@/data-access/folder-access";
 
 export async function getAllFoldersAction() {
     // This function fetches all folders from the database
@@ -20,6 +20,15 @@ export async function createFolderAction(
     parentId: string | null
 ) {
     return await createFolder(name, modifiedAt, parentId);
+}
+
+export async function moveFolderAction(
+    folderId: string,
+    newParentId: string | null
+) {
+    // This function moves a folder to a new parent folder
+    // It should be called when the user confirms moving a folder
+    return await moveFolder(folderId, newParentId);
 }
 
 export async function renameFolderAction(

@@ -44,7 +44,7 @@ import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
-import { createFolderAction, deleteFolderAction, getFolderByIdAction, renameFolderAction } from "@/lib/actions/folder-actions"
+import { createFolderAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
 import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 
@@ -248,12 +248,12 @@ export default function FileManager(
     toast.success(`${newFolderName} created successfully!`)
 
     // Update file list by fetching new list from server
-    const newFiles = await getFilesandFoldersAction(currentParentId);
+    const newFilesandFolders = await getFilesandFoldersAction(currentParentId);
 
     // Replace previous files with new ones
     // This ensures that the UI reflects the latest state of files
     // and folders in the current directory
-    setFilesandFolders(() => newFiles);
+    setFilesandFolders(() => newFilesandFolders);
     
     // Reset state
     setNewFolderName("") // Reset folder name input
@@ -327,29 +327,38 @@ export default function FileManager(
 
   // Move file/folder
   const moveFile = async (newParentId: string | null) => {
-    if (!activeFile) return
+    if (selectedFiles.length > 0) {
+      // Separate into files and folders so db call can be done
+      const filesToMove = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type !== "folder")
+      const foldersToMove = filesandFolders.filter((file) => selectedFiles.includes(file.id) && file.type === "folder")
+    } else if (activeFile) {
 
-    console.log(`Moving ${activeFile.name} to parent ID: ${newParentId}`)
+      console.log(`Moving ${activeFile.name} to parent ID: ${newParentId}`)
 
-    // Update the parentId of the file or folder in the database
-    if (activeFile.type === "folder") {
-      renameFolderAction(activeFile.id, newFileName)
-    } else {
-      await moveFileAction(activeFile.id, newParentId)
+      // Update the parentId of the file or folder in the database
+      if (activeFile.type === "folder") {
+        await moveFolderAction(activeFile.id, newParentId)
+      } else {
+        await moveFileAction(activeFile.id, newParentId)
+      }
+
+      // Get new folder name for better toast message
+
+      if (newParentId === null) {
+        toast.success(`${activeFile.name} moved to Home folder!`)
+      }
+      else { // Need else for TS to infer that newFolderName is string, not string | null
+        const newFolder = await getFolderByIdAction(newParentId);
+        toast.success(`${activeFile.name} moved to ${newFolder?.name}!`)
+      }
+
+      // Get file list from server (since items counts are being modified)
+
+      const newFiles = await getFilesandFoldersAction(currentParentId);
+      setFilesandFolders(newFiles);
+
+      setActiveFile(null) // Reset active file
     }
-
-    // Get new folder name for better toast message
-
-    if (newParentId === null) {
-      toast.success(`${activeFile.name} moved to home folder!`)
-    }
-    else { // Need else for TS to infer that newFolderName is string, not string | null
-      const newFolder = await getFolderByIdAction(newParentId);
-      toast.success(`${activeFile.name} moved to ${newFolder?.name}!`)
-    }
-
-    // File list update is same as remove (since it is no longer in the current folder)
-    setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id));
   }
 
   return (
