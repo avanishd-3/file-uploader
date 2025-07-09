@@ -60,6 +60,10 @@ export function FilePreview({  previewModalOpen,
                 )}
               </div>
             ) : activeFile?.type === "pdf" ? (
+              // TODO -> Add PDF preview support
+              // Tried using react-pdf but couldn't get onDocumentLoadSuccess to work
+              // React PDF sample for Next.js App Router: https://github.com/wojtekmaj/react-pdf/tree/main/sample/next-app
+              // This doesn't work
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
                 <FilePDF className="h-16 w-16 text-red-500" />
                 <span className="sr-only">PDF preview</span>
