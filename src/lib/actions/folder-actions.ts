@@ -1,6 +1,18 @@
 "use server"
 
-import { createFolder, deleteFolder, renameFolder } from "@/data-access/folder-access";
+import { createFolder, deleteFolder, getAllFolders, getFolderById, renameFolder } from "@/data-access/folder-access";
+
+export async function getAllFoldersAction() {
+    // This function fetches all folders from the database
+    // It should be called when the user opens the drive view
+    return await getAllFolders();
+}
+
+export async function getFolderByIdAction(folderId: string) {
+    // This function fetches a folder by its ID
+    // It should be called when the user wants to view a specific folder
+    return await getFolderById(folderId);
+}
 
 export async function createFolderAction(
     name: string,

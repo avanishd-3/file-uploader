@@ -3,7 +3,56 @@ import "server-only";
 // Database operations for file
 import { db } from "@/server/db";
 import { file, folder } from "@/server/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, SQL, sql } from "drizzle-orm";
+
+
+/* Ancestor item count queries */
+
+// Recursive SQL is mainly supported in PostgreSQL
+// Need raw SQL because Drizzle ORM does not support recursive CTEs yet
+// See https://github.com/drizzle-team/drizzle-orm/issues/209
+// TODO -> Switch to Drizzle ORM when it supports recursive CTEs
+
+
+const incrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
+    return sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items + 1
+            WHERE id IN (SELECT id FROM ancestors)`;
+};
+
+const decrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
+    return sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items - 1
+            WHERE id IN (SELECT id FROM ancestors)`
+};
 
 
 // TODO -> Add auth to this stuff
@@ -53,28 +102,22 @@ export async function moveFile(
     let decrementPromise: Promise<any> | undefined;
     let incrementPromise: Promise<any> | undefined;
 
-    // Decrement the item count of the current parent folder if it exists
+    // Decrement ancestor item counts
     if (currentFile !== undefined && currentFile.parentId !== null) {
-        decrementPromise = 
-            db
-            .update(folder)
-            .set({ items: sql`${folder.items} - 1` })
-            .where(eq(folder.id, currentFile.parentId));
+        decrementPromise = db.execute(decrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
-    // Increment the item count of the new parent folder if it exists
+    // Increment the item count of the new parent folder and its ancestors
     if (newParentId !== null) {
-        incrementPromise = 
-            db
-            .update(folder)
-            .set({ items: sql`${folder.items} + 1` })
-            .where(eq(folder.id, newParentId));
+        incrementPromise = db.execute(incrementAncestorItemsByOneQuery(newParentId));
     }
 
     // Filter out any undefined promises to avoid errors
     const filteredPromises = [decrementPromise, incrementPromise].filter(p => p !== undefined && p !== null);
 
     // Length of filteredPromises should be 1 or 2, since file is being moved out of null parent or into null parent at worst
+
+    // This does duplicated work if moving to an ancestor folder, but it's easier to implement
     await Promise.all(filteredPromises);
 
     // If the file is being moved to a new parent, update the parentId
@@ -92,32 +135,7 @@ export async function createFile(
 ) {
     // New file will increase the size of ancestors by 1 if it is not a top-level file
     if (parentId !== null) {
-
-        // Recursive SQL is mainly supported in PostgreSQL
-        // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
-        // See https://github.com/drizzle-team/drizzle-orm/issues/209
-        // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
-
-        const query = sql`
-            -- Use a recursive CTE to get all ancestors of the folder
-            -- Need double quotes for column names with uppercase letters
-            -- Need double quotes because table name has a hyphen
-
-            WITH RECURSIVE ancestors AS (
-                SELECT id, "parentId"
-                FROM "file-uploader_folder"
-                WHERE id = ${parentId}
-                UNION ALL
-                SELECT f.id, f."parentId"
-                FROM "file-uploader_folder" f
-                INNER JOIN ancestors a ON f.id = a."parentId"
-            )
-            UPDATE "file-uploader_folder"
-            SET items = items + 1
-            WHERE id IN (SELECT id FROM ancestors)`;
-
-        
-        await db.execute(query);
+        await db.execute(incrementAncestorItemsByOneQuery(parentId));
     }
     
     return db.insert(file).values({
@@ -141,31 +159,7 @@ export async function deleteFile(fileId: string) {
     });
 
     if (currentFile !== undefined && currentFile.parentId !== null) {
-        // Recursive SQL is mainly supported in PostgreSQL
-        // Need raw SQL because Drizzle ORM does not support recursive CTEs yet
-        // See https://github.com/drizzle-team/drizzle-orm/issues/209
-        // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
-
-        const query = sql`
-            -- Use a recursive CTE to get all ancestors of the folder
-            -- Need double quotes for column names with uppercase letters
-            -- Need double quotes because table name has a hyphen
-
-            WITH RECURSIVE ancestors AS (
-                SELECT id, "parentId"
-                FROM "file-uploader_folder"
-                WHERE id = ${currentFile.parentId}
-                UNION ALL
-                SELECT f.id, f."parentId"
-                FROM "file-uploader_folder" f
-                INNER JOIN ancestors a ON f.id = a."parentId"
-            )
-            UPDATE "file-uploader_folder"
-            SET items = items - 1
-            WHERE id IN (SELECT id FROM ancestors)`;
-
-        
-        await db.execute(query);
+        await db.execute(decrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
     return db.delete(file).where(eq(file.id, fileId));

@@ -44,8 +44,8 @@ import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
-import { createFolderAction, deleteFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
-import { deleteFileAction, renameFileAction } from "@/lib/actions/file-actions"
+import { createFolderAction, deleteFolderAction, getFolderByIdAction, renameFolderAction } from "@/lib/actions/folder-actions"
+import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 
 // Helper function to get file icon
@@ -88,10 +88,12 @@ function MoveDestinationFolder({
 export default function FileManager(
   {
   initialItems,
-  breadcrumbTrail
+  breadcrumbTrail,
+  allFolders
   } : {
   initialItems: FileorFolderItem[],
-  breadcrumbTrail: FolderItem[]
+  breadcrumbTrail: FolderItem[],
+  allFolders: FolderItem[]
   }
 ) {
 
@@ -125,6 +127,9 @@ export default function FileManager(
 
   // Get files and folders from the database
   const [filesandFolders, setFilesandFolders] = useState<FileorFolderItem[]>(initialItems);
+
+  // All folders for move modal
+  const [allUserFolders, setAllUserFolders] = useState<FolderItem[]>(allFolders);
 
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
@@ -226,7 +231,7 @@ export default function FileManager(
     }
   }
 
-  /* TODO -> Update all of these functions to use the database instead of local state */
+  /* TODO -> Update move to use the database instead of local state */
 
   // Create new folder
   const createNewFolder = async () => {
@@ -317,6 +322,33 @@ export default function FileManager(
     }
 
     setDeleteModalOpen(false)
+  }
+
+  // Move file/folder
+  const moveFile = async (newParentId: string | null) => {
+    if (!activeFile) return
+
+    console.log(`Moving ${activeFile.name} to parent ID: ${newParentId}`)
+
+    // Update the parentId of the file or folder in the database
+    if (activeFile.type === "folder") {
+      renameFolderAction(activeFile.id, newFileName)
+    } else {
+      await moveFileAction(activeFile.id, newParentId)
+    }
+
+    // Get new folder name for better toast message
+
+    if (newParentId === null) {
+      toast.success(`${activeFile.name} moved to home folder!`)
+    }
+    else { // Need else for TS to infer that newFolderName is string, not string | null
+      const newFolder = await getFolderByIdAction(newParentId);
+      toast.success(`${activeFile.name} moved to ${newFolder?.name}!`)
+    }
+
+    // File list update is same as remove (since it is no longer in the current folder)
+    setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id));
   }
 
   return (
@@ -566,23 +598,27 @@ export default function FileManager(
           </DialogHeader>
 
           <ScrollArea className="h-[200px] rounded-md border p-4">
+            {/* This ensures that root folder is always displayed at the top */}
             <div className="space-y-2">
               <MoveDestinationFolder
                 folder={{name: "Home"}}
                 onClick={() => {
-                  // TODO -> Implement move logic
+                  // Move file/folder to root folder
+                  moveFile(null)
                   setMoveModalOpen(false)
                 }}
               />
 
-              {filesandFolders
-                .filter((file) => file.type === "folder")
+              {/* No need to filter out files b/c allUserFolders is FolderItem[] */}
+              {allUserFolders
+                .filter((folder) => folder.id !== currentParentId) // Exclude current folder
                 .map((folder) => (
                   <MoveDestinationFolder
                     key={folder.id}
                     folder={folder}
                     onClick={() => {
-                      // TODO -> Implement move logic
+                      // Move file/folder to the selected folder
+                      moveFile(folder.id)
                       setMoveModalOpen(false)
                     }}
                   />
@@ -594,7 +630,6 @@ export default function FileManager(
             <Button variant="outline" onClick={() => setMoveModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setMoveModalOpen(false)}>Move Here</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

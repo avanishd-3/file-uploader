@@ -1,6 +1,6 @@
 "use server"
 
-import { createFile, deleteFile, renameFile } from "@/data-access/file-access";
+import { createFile, deleteFile, moveFile, renameFile } from "@/data-access/file-access";
 
 export async function createFileAction(
     name: string,
@@ -18,6 +18,13 @@ export async function renameFileAction(fileId: string, newName: string) {
     // It should be called when the user confirms renaming a file
     // It will not change the parentId or any other properties of the file
     return await renameFile(fileId, newName);
+}
+
+export async function moveFileAction(fileId: string, newParentId: string | null) {
+    // This function moves a file to a new parent folder
+    // It should be called when the user confirms moving a file
+    // It will update the parentId of the file in the database
+    return await moveFile(fileId, newParentId);
 }
 
 export async function deleteFileAction(fileId: string) {

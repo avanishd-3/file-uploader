@@ -8,6 +8,13 @@ import { eq, sql } from "drizzle-orm";
 // TODO -> Add auth to this stuff
 
 /* Folder queries */
+export async function getAllFolders() {
+    return db.query.folder.findMany({
+        orderBy: (fields) => fields.name, // Sort by name to make it look better on the UI
+    })
+}
+
+
 export async function getFolderById(folderId: string) {
     return db.query.folder.findFirst({
         where: eq(folder.id, folderId),
