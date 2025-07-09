@@ -14,7 +14,7 @@ import { eq, SQL, sql } from "drizzle-orm";
 // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
 
 
-const incrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
+const getIncrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -34,7 +34,7 @@ const incrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
             WHERE id IN (SELECT id FROM ancestors)`;
 };
 
-const decrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
+const getDecrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -104,12 +104,12 @@ export async function moveFile(
 
     // Decrement ancestor item counts
     if (currentFile !== undefined && currentFile.parentId !== null) {
-        decrementPromise = db.execute(decrementAncestorItemsByOneQuery(currentFile.parentId));
+        decrementPromise = db.execute(getDecrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
     // Increment the item count of the new parent folder and its ancestors
     if (newParentId !== null) {
-        incrementPromise = db.execute(incrementAncestorItemsByOneQuery(newParentId));
+        incrementPromise = db.execute(getIncrementAncestorItemsByOneQuery(newParentId));
     }
 
     // Filter out any undefined promises to avoid errors
@@ -135,7 +135,7 @@ export async function createFile(
 ) {
     // New file will increase the size of ancestors by 1 if it is not a top-level file
     if (parentId !== null) {
-        await db.execute(incrementAncestorItemsByOneQuery(parentId));
+        await db.execute(getIncrementAncestorItemsByOneQuery(parentId));
     }
     
     return db.insert(file).values({
@@ -159,7 +159,7 @@ export async function deleteFile(fileId: string) {
     });
 
     if (currentFile !== undefined && currentFile.parentId !== null) {
-        await db.execute(decrementAncestorItemsByOneQuery(currentFile.parentId));
+        await db.execute(getDecrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
     return db.delete(file).where(eq(file.id, fileId));

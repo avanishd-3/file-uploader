@@ -12,7 +12,7 @@ import { eq, SQL, sql } from "drizzle-orm";
 // See https://github.com/drizzle-team/drizzle-orm/issues/209
 // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
 
-const incrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
+const getIncrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -32,7 +32,7 @@ const incrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, fo
             WHERE id IN (SELECT id FROM ancestors)`;
 }
 
-const decrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
+const getDecrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -108,12 +108,12 @@ export async function moveFolder(
 
     // Decrement the item count of the current parent folder if it exists
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
-        decrementPromise = db.execute(decrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
+        decrementPromise = db.execute(getDecrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
     }
 
     // Increment the item count of the new parent folder and its ancestors
     if (currentFolder !== undefined && newParentId !== null) {
-        incrementPromise = db.execute(incrementAncestorItemsByCurrFolderSizeQuery(newParentId, currentFolder.items));
+        incrementPromise = db.execute(getIncrementAncestorItemsByCurrFolderSizeQuery(newParentId, currentFolder.items));
     }
 
     // Filter out any undefined promises to avoid errors
@@ -161,7 +161,7 @@ export async function deleteFolder(folderId: string) {
     });
 
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
-        await db.execute(decrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
+        await db.execute(getDecrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
     }
 
     // Delete folder itself
