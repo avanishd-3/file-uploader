@@ -6,12 +6,14 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { JSX } from "react"
+import { useState, type JSX } from "react"
 import { ImageIcon,
     FileIcon as FilePDF,
     FileText
 } from "lucide-react"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "./file"
+
+import Image from "next/image"
 
 
 export function FilePreview({  previewModalOpen,
@@ -22,6 +24,9 @@ export function FilePreview({  previewModalOpen,
   formatDate: (date: Date) => string,
   getFileIcon: (type: FileorFolderType) => JSX.Element
 }) {
+
+  const [imagePreviewError, setImagePreviewError] = useState(false)
+
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
         <DialogContent className="sm:max-w-[600px]">
@@ -34,9 +39,25 @@ export function FilePreview({  previewModalOpen,
 
           <div className="flex flex-col items-center justify-center p-4 min-h-[300px]">
             {activeFile?.type === "image" ? (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <ImageIcon className="h-16 w-16 text-muted-foreground" />
-                <span className="sr-only">Image preview</span>
+              // Need relative here or image will fill the grandparent div
+              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
+                {!imagePreviewError ? (
+                  <Image
+                  src={activeFile.url}
+                  alt={activeFile.name}
+                  fill
+                  sizes="(min-width: 808px) 50vw, 100vw"
+                  style={{
+                    // The image will be scaled down to fit the container and preserve aspect ratio.
+                    // See: https://nextjs.org/docs/app/api-reference/components/image#other-props
+                    objectFit: 'contain', 
+                  }}
+                  onError={() => setImagePreviewError(true)} // Diplay image icon if image fails to load
+                  className="rounded-md"
+                />
+                ) : (
+                  <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                )}
               </div>
             ) : activeFile?.type === "pdf" ? (
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
