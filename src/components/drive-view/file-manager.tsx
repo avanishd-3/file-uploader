@@ -231,8 +231,6 @@ export default function FileManager(
     }
   }
 
-  /* TODO -> Update move to use the database instead of local state */
-
   // Create new folder
   const createNewFolder = async () => {
     if (newFolderName.trim() === "") return
