@@ -243,7 +243,8 @@ export default function FileManager(
     )
 
     // Add toast notification for folder creation
-    toast.success(`${newFolderName} created successfully!`)
+    // Use breadcrumTrail info to avoid another db call
+    toast.success(`${newFolderName} created in ${breadcrumbTrail.length === 0  || breadcrumbTrail[breadcrumbTrail.length - 1] === undefined ? "Home folder" : breadcrumbTrail[breadcrumbTrail.length - 1]?.name}`)
 
     // Update file list by fetching new list from server
     const newFilesandFolders = await getFilesandFoldersAction(currentParentId);
