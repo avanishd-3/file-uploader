@@ -5,6 +5,15 @@ import { db } from "@/server/db";
 import { file, folder } from "@/server/db/schema";
 import { eq, SQL, sql } from "drizzle-orm";
 
+
+/**
+ * How item counts work:
+ * The items column in the folder table represents the total number of immediate children (files and folders) within that folder.
+ * This is more intuitive for users than adding the total number of all descendant files and folders.
+ * The iOS files manager behaves this way (a folder count = number of children folders + number of children files)
+ * Previously, I updated the number of items by the child folder count, but that was confusing.
+ */
+
 /* Ancestor item count queries */
 
 // Recursive SQL is mainly supported in PostgreSQL
@@ -12,7 +21,7 @@ import { eq, SQL, sql } from "drizzle-orm";
 // See https://github.com/drizzle-team/drizzle-orm/issues/209
 // TODO -> Switch to Drizzle ORM when it supports recursive CTEs
 
-const getIncrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
+const getIncrementAncestorItemCountByOne = (parentId: string | null): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -28,11 +37,11 @@ const getIncrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null,
                 INNER JOIN ancestors a ON f.id = a."parentId"
             )
             UPDATE "file-uploader_folder"
-            SET items = items + ${folderSize} -- Increment the item count by the number of items in the folder
+            SET items = items + 1 -- Increment the item count by 1
             WHERE id IN (SELECT id FROM ancestors)`;
 }
 
-const getDecrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null, folderSize: number): SQL => {
+const getDecrementAncestorItemsCountByOne = (parentId: string | null): SQL => {
     return sql`
             -- Use a recursive CTE to get all ancestors of the folder
             -- Need double quotes for column names with uppercase letters
@@ -48,7 +57,7 @@ const getDecrementAncestorItemsByCurrFolderSizeQuery = (parentId: string | null,
                 INNER JOIN ancestors a ON f.id = a."parentId"
             )
             UPDATE "file-uploader_folder"
-            SET items = items - ${folderSize} -- Decrement the item count by the number of items in the folder
+            SET items = items - 1 -- Decrement the item count by the number of items in the folder
             WHERE id IN (SELECT id FROM ancestors)`;
     
 }
@@ -108,12 +117,12 @@ export async function moveFolder(
 
     // Decrement the item count of the current parent folder if it exists
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
-        decrementPromise = db.execute(getDecrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
+        decrementPromise = db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
     }
 
     // Increment the item count of the new parent folder and its ancestors
     if (currentFolder !== undefined && newParentId !== null) {
-        incrementPromise = db.execute(getIncrementAncestorItemsByCurrFolderSizeQuery(newParentId, currentFolder.items));
+        incrementPromise = db.execute(getIncrementAncestorItemCountByOne(newParentId));
     }
 
     // Filter out any undefined promises to avoid errors
@@ -138,6 +147,10 @@ export async function createFolder(
     modified: Date,
     parentId: string | null,
 ) {
+    // Increase parent folder item count by 1
+    if (parentId !== null) {
+        await db.update(folder).set({ items: sql`${folder.items} + 1` }).where(eq(folder.id, parentId));
+    }
     return db.insert(folder).values({
         name,
         type: "folder", // Explicitly set type to "folder"
@@ -161,7 +174,7 @@ export async function deleteFolder(folderId: string) {
     });
 
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
-        await db.execute(getDecrementAncestorItemsByCurrFolderSizeQuery(currentFolder.parentId, currentFolder.items));
+        await db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
     }
 
     // Delete folder itself
