@@ -587,7 +587,14 @@ export default function FileManager(
 
       {/* Delete Modal */}
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
-        <DialogContent>
+        {/* Allow delete with Enter for consistency */}
+        <DialogContent onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                deleteFiles()
+                setDeleteModalOpen(false) // Close modal after deletion
+              }
+            }}>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
