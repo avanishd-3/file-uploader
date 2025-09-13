@@ -70,14 +70,20 @@ const getIcon = (type: FileorFolderType) => {
 function MoveDestinationFolder({
   folder,
   onClick,
+  onKeyDown
 }: {
   folder: { id?: string; name: string }
   onClick: () => void
+  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void // Make mandatory so accessibility is ensured
 }) {
   return (
     <div
       className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
       onClick={onClick}
+      onKeyDown={onKeyDown}
+      // Make div focusable for accessibility
+      // Also allows using Tab to toggle between folders
+      tabIndex={0} 
     >
       <Folder className="h-5 w-5 text-blue-500" />
       <span>{folder.name}</span>
@@ -621,6 +627,7 @@ export default function FileManager(
       </Dialog>
 
       {/* Move Modal */}
+      {/* Allow using tab navigation and enter for consistency and accessibility */}
       <Dialog open={moveModalOpen} onOpenChange={setMoveModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -638,6 +645,13 @@ export default function FileManager(
                   moveFile(null)
                   setMoveModalOpen(false)
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    moveFile(null)
+                    setMoveModalOpen(false)
+                  }
+                }}
               />
 
               {/* No need to filter out files b/c allUserFolders is FolderItem[] */}
@@ -651,6 +665,13 @@ export default function FileManager(
                       // Move file/folder to the selected folder
                       moveFile(folder.id)
                       setMoveModalOpen(false)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        moveFile(folder.id)
+                        setMoveModalOpen(false)
+                      }
                     }}
                   />
                 ))}
