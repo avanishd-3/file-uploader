@@ -93,27 +93,33 @@ function MoveDestinationFolder({
 
 async function downloadFileClient(file: FileorFolderItem) {
   // See: https://www.geeksforgeeks.org/reactjs/how-to-implement-file-download-in-nextjs-using-an-api-route/
-  const response = await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(res => res.blob());
+  await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(async res => {
+    if (!res.ok) {
+      toast.error("Failed to download file.");
+      return;
+    }
+    const responseBlob = await res.blob();
 
-  // Use file name for download
-  const filename = file.name;
+    // Use file name for download
+    const filename = file.name;
 
-  // Create a temporary anchor element to trigger the download
-  const url = window.URL.createObjectURL(new Blob([response.slice()], { type: response.type }));
-  const link = document.createElement('a');
+    // Create a temporary anchor element to trigger the download
+    const url = window.URL.createObjectURL(new Blob([responseBlob.slice()], { type: responseBlob.type }));
+    const link = document.createElement('a');
 
-  link.href = url;
+    link.href = url;
 
-  // Set filename received in response
-  link.setAttribute('download', filename);
+    // Set filename received in response
+    link.setAttribute('download', filename);
 
-  // Append to the document and trigger click
-  document.body.appendChild(link);
-  link.click();
+    // Append to the document and trigger click
+    document.body.appendChild(link);
+    link.click();
 
-  // Clean up
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    // Clean up
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    });
 }
 
 
