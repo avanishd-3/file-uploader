@@ -91,6 +91,32 @@ function MoveDestinationFolder({
   )
 }
 
+async function downloadFileClient(file: FileorFolderItem) {
+  // See: https://www.geeksforgeeks.org/reactjs/how-to-implement-file-download-in-nextjs-using-an-api-route/
+  const response = await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(res => res.blob());
+
+  // Use file name for download
+  const filename = file.name;
+
+  // Create a temporary anchor element to trigger the download
+  const url = window.URL.createObjectURL(new Blob([response.slice()], { type: response.type }));
+  const link = document.createElement('a');
+
+  link.href = url;
+
+  // Set filename received in response
+  link.setAttribute('download', filename);
+
+  // Append to the document and trigger click
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+
+
 export default function FileManager(
   {
   initialItems,
@@ -219,27 +245,7 @@ export default function FileManager(
         setPreviewModalOpen(true)
         break
       case "download":
-        // See: https://www.geeksforgeeks.org/reactjs/how-to-implement-file-download-in-nextjs-using-an-api-route/
-        const response = await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(res => res.blob());
-
-        // Use file name for download
-        const filename = file.name;
-
-        // Create a temporary anchor element to trigger the download
-        const url = window.URL.createObjectURL(new Blob([response.slice()], { type: response.type }));
-        const link = document.createElement('a');
-
-        link.href = url;
-
-        // Set filename received in response
-        link.setAttribute('download', filename);
-
-        // Append to the document and trigger click
-        document.body.appendChild(link);
-        link.click();
-
-        // Clean up
-        document.body.removeChild(link);
+        await downloadFileClient(file)
         break;
       default:
         break
@@ -254,6 +260,15 @@ export default function FileManager(
         break
       case "move":
         setMoveModalOpen(true)
+        break
+      case "download":
+        // Download each selected file
+        selectedFiles.forEach(async (fileId) => {
+          const file = filesandFolders.find((f) => f.id === fileId && f.type !== "folder") as FileItem | undefined
+          if (file) {
+            await downloadFileClient(file)
+          }
+        })
         break
       default:
         break
