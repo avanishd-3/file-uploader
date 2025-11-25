@@ -36,7 +36,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileItem, FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
@@ -193,7 +193,7 @@ export default function FileManager(
   }
 
   // Handle file actions
-  const handleFileAction = (action: string, file: FileorFolderItem) => {
+  const handleFileAction = async (action: string, file: FileorFolderItem) => {
     setActiveFile(file)
 
     switch (action) {
@@ -218,6 +218,29 @@ export default function FileManager(
       case "preview":
         setPreviewModalOpen(true)
         break
+      case "download":
+        // See: https://www.geeksforgeeks.org/reactjs/how-to-implement-file-download-in-nextjs-using-an-api-route/
+        const response = await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(res => res.blob());
+
+        // Use file name for download
+        const filename = file.name;
+
+        // Create a temporary anchor element to trigger the download
+        const url = window.URL.createObjectURL(new Blob([response.slice()], { type: response.type }));
+        const link = document.createElement('a');
+
+        link.href = url;
+
+        // Set filename received in response
+        link.setAttribute('download', filename);
+
+        // Append to the document and trigger click
+        document.body.appendChild(link);
+        link.click();
+
+        // Clean up
+        document.body.removeChild(link);
+        break;
       default:
         break
     }
