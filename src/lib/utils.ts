@@ -63,6 +63,7 @@ export const getFileType = (fileName: string): FileItem["type"] => {
     case "xml":
     case "yaml":
     case "yml":
+    case "sql":
 
       return "code";
 
