@@ -30,13 +30,15 @@ export const getFileType = (fileName: string): FileItem["type"] => {
   const ext = fileName.split(".").pop()?.toLowerCase();
   switch (ext) {
     // Document types
-    case "pdf":
     case "doc":
     case "docx":
     case "txt":
     case "md":
 
       return "document";
+
+    case "pdf":
+      return "pdf";
 
     // Image types
     case "jpg":
