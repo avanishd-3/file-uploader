@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useTransition} from "react"
+import { use, useState, useTransition, useRef, useEffect} from "react"
 import {
   ChevronRight,
   FileText,
@@ -157,6 +157,23 @@ export default function FileManager(
   allFolders: FolderItem[]
   }
 ) {
+  // Ref for search input
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Focus search on Cmd+K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   // Get initial files and folders from db based on route params
 
@@ -479,6 +496,7 @@ export default function FileManager(
                 <InputGroupInput placeholder="Search files..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  ref={searchInputRef}
                 />
                 <InputGroupAddon>
                   <Search />
