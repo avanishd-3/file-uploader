@@ -729,8 +729,7 @@ function FileUploadDropzone(props: FileUploadDropzoneProps) {
       if (!items) return;
 
       const files: File[] = [];
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
+      for (const item of items) {
         if (item?.kind === "file") {
           const file = item.getAsFile();
           if (file) {
@@ -853,7 +852,7 @@ function FileUploadList(props: FileUploadListProps) {
 
   const context = useFileUploadContext(LIST_NAME);
   const fileCount = useStore((state) => state.files.size);
-  const shouldRender = forceMount || fileCount > 0;
+  const shouldRender = forceMount ?? fileCount > 0;
 
   if (!shouldRender) return null;
 
@@ -1182,7 +1181,7 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
 
   if (!itemContext.fileState) return null;
 
-  const shouldRender = forceMount || itemContext.fileState.progress !== 100;
+  const shouldRender = forceMount ?? itemContext.fileState.progress !== 100;
 
   if (!shouldRender) return null;
 
@@ -1351,7 +1350,7 @@ function FileUploadClear(props: FileUploadClearProps) {
   const store = useStoreContext(CLEAR_NAME);
   const fileCount = useStore((state) => state.files.size);
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onClick = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1364,7 +1363,7 @@ function FileUploadClear(props: FileUploadClearProps) {
     [store, onClickProp],
   );
 
-  const shouldRender = forceMount || fileCount > 0;
+  const shouldRender = forceMount ?? fileCount > 0;
 
   if (!shouldRender) return null;
 
