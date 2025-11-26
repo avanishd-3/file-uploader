@@ -2,8 +2,10 @@ import "server-only";
 
 // Database operations for folder
 import { db } from "@/server/db";
-import { file, folder } from "@/server/db/schema";
+import { folder } from "@/server/db/schema";
 import { eq, type SQL, sql } from "drizzle-orm";
+import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
+import type { RowList } from "postgres";
 
 
 /**
@@ -112,9 +114,9 @@ export async function moveFolder(
     });
 
     // Prepare promises for updating the folder item counts
-    let decrementPromise: Promise<any> | undefined;
-    let incrementPromise: Promise<any> | undefined;
-
+    let decrementPromise: PgRaw<RowList<Record<string, unknown>[]>> | undefined;
+    let incrementPromise: PgRaw<RowList<Record<string, unknown>[]>> | undefined;
+    
     // Decrement the item count of the current parent folder if it exists
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
         decrementPromise = db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));

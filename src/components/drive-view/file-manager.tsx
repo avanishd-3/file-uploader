@@ -683,10 +683,10 @@ export default function FileManager(
       {/* Delete Modal */}
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         {/* Allow delete with Enter for consistency */}
-        <DialogContent onKeyDown={(e) => {
+        <DialogContent onKeyDown={async (e) => {
               if (e.key === "Enter") {
                 e.preventDefault()
-                deleteFiles()
+                await deleteFiles()
                 setDeleteModalOpen(false) // Close modal after deletion
               }
             }}>
