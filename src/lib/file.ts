@@ -21,3 +21,5 @@ export interface FileItem {
 
 export type FileorFolderType = FileItem["type"] | FolderItem["type"]
 export type FileorFolderItem = FileItem | FolderItem
+
+export type FileType = FileItem["type"]

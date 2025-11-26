@@ -12,7 +12,7 @@ import { FileUploadBox } from "../file-upload-box";
 
 import { Button } from "@/components/ui/button"
 import React, { type Dispatch, type SetStateAction } from "react";
-import type { FileorFolderItem } from "./file";
+import type { FileorFolderItem } from "../../lib/file";
 
 export const UploadModal = ({
   uploadModalOpen,

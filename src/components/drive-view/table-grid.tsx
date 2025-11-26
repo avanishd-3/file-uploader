@@ -11,7 +11,7 @@ import { TabsContent } from "@/components/ui/tabs"
 import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { EmptyState } from "./empty-state"
-import type { FileItem, FolderItem, FileorFolderType } from "./file"
+import type { FileItem, FolderItem, FileorFolderType } from "../../lib/file"
 import type { JSX } from "react"
 
 

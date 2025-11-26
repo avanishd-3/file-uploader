@@ -44,7 +44,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileorFolderItem, FileorFolderType, FolderItem } from "../../lib/file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"

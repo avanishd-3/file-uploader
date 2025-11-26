@@ -6,6 +6,7 @@ import { file, folder } from "@/server/db/schema";
 import { eq, type SQL, sql } from "drizzle-orm";
 import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
 import type { RowList } from "postgres";
+import type { FileType } from "@/lib/file";
 
 
 /* Ancestor item count queries */
@@ -144,7 +145,7 @@ export async function moveFile(
 /* Create new file */
 export async function createFile(
     name: string,
-    type: "pdf" | "image" | "document" | "code" | "other",
+    type: FileType,
     size: string,
     modified: Date,
     parentId: string | null,

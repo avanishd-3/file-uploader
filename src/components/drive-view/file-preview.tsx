@@ -11,7 +11,7 @@ import { ImageIcon,
     FileIcon as FilePDF,
     FileText
 } from "lucide-react"
-import type { FileItem, FileorFolderItem, FileorFolderType } from "./file"
+import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import Image from "next/image"
 import { AudioPlayerButton, AudioPlayerDuration, AudioPlayerProgress, AudioPlayerProvider, AudioPlayerSpeed, AudioPlayerTime } from "../ui/audio-player"

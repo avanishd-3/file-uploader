@@ -2,7 +2,7 @@
 import { db } from "@/server/db";
 import { createFile } from "@/data-access/file-access";
 import { createFolder } from "@/data-access/folder-access";
-import type { FileItem, FolderItem } from "@/components/drive-view/file";
+import type { FileItem, FolderItem } from "@/lib/file";
 
 // Sample data to seed the database
 

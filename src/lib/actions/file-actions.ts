@@ -1,10 +1,11 @@
 "use server"
 
 import { createFile, deleteFile, moveFile, renameFile, getFilesByParentName} from "@/data-access/file-access";
+import { type FileType } from "@/lib/file";
 
 export async function createFileAction(
     name: string,
-    type: "pdf" | "image" | "document" | "code" | "other",
+    type: FileType,
     size: string,
     createdAt: Date,
     parentId: string | null,

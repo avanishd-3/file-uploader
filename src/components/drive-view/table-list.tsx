@@ -13,7 +13,7 @@ import { MoreVertical } from "lucide-react"
 import { Folder, Eye, Download, Edit, Move, Trash2 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { EmptyState } from "./empty-state"
-import type { FileItem, FolderItem, FileorFolderType } from "./file"
+import type { FileItem, FolderItem, FileorFolderType } from "../../lib/file"
 import type { JSX } from "react"
 
 {/* List layout for files and folders */}

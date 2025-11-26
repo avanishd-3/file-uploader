@@ -1,6 +1,6 @@
 "use server"
 
-import type { FolderItem } from "@/components/drive-view/file";
+import type { FolderItem } from "@/lib/file";
 import { getFilesByParentId } from "@/data-access/file-access";
 import { getFoldersByParentId } from "@/data-access/folder-access";
 import { getBreadCrumb } from "@/data-access/other-access";

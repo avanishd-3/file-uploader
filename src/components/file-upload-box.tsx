@@ -16,7 +16,7 @@ import {
 import { Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
-import type { FileorFolderItem } from "./drive-view/file";
+import type { FileorFolderItem } from "../lib/file";
 import type { Dispatch, SetStateAction } from "react";
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions";
 import { createFileAction } from "@/lib/actions/file-actions";

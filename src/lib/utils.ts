@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format } from "date-fns"
-import type { FileItem } from "@/components/drive-view/file"
+import type { FileItem, FileType } from "@/lib/file"
 
 /* These utils can be used on both client and server */
 
@@ -25,7 +25,7 @@ export const formatDate = (date: Date) => {
     return format(date, "MMM d, yyyy")
   }
 }
-export const getFileType = (fileName: string): FileItem["type"] => {
+export const getFileType = (fileName: string): FileType => {
   /* This function determines the type of file based on its extension. */
   const ext = fileName.split(".").pop()?.toLowerCase();
   switch (ext) {
