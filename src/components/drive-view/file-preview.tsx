@@ -14,6 +14,7 @@ import { ImageIcon,
 import type { FileItem, FileorFolderItem, FileorFolderType } from "./file"
 
 import Image from "next/image"
+import { AudioPlayerButton, AudioPlayerDuration, AudioPlayerProgress, AudioPlayerProvider, AudioPlayerSpeed, AudioPlayerTime } from "../ui/audio-player"
 
 
 export function FilePreview({  previewModalOpen,
@@ -24,6 +25,13 @@ export function FilePreview({  previewModalOpen,
   formatDate: (date: Date) => string,
   getFileIcon: (type: FileorFolderType) => JSX.Element
 }) {
+
+  // This should only be used if activeFile is an audio file
+  const track = {
+    id: activeFile?.id || "track-1",
+    src: activeFile && (activeFile as FileItem).url ? (activeFile as FileItem).url : "",
+    data: { title: activeFile?.name || "Unknown", artist: "Unknown" },
+  }
 
   const [imagePreviewError, setImagePreviewError] = useState(false)
 
@@ -68,7 +76,17 @@ export function FilePreview({  previewModalOpen,
                 <FilePDF className="h-16 w-16 text-red-500" />
                 <span className="sr-only">PDF preview</span>
               </div>
-            ) : (
+            ) : activeFile?.type === "audio" ? (
+              <AudioPlayerProvider>
+                <div className="flex items-center gap-4">
+                  <AudioPlayerButton item={track} />
+                  <AudioPlayerTime />
+                  <AudioPlayerProgress className="flex-1" />
+                  <AudioPlayerDuration />
+                  <AudioPlayerSpeed />
+                </div>  
+              </AudioPlayerProvider>
+            ): (
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
                 <FileText className="h-16 w-16 text-muted-foreground" />
                 <span className="sr-only">File preview</span>
