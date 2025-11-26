@@ -28,9 +28,6 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    // Read the file
-    const fileBuffer = fs.readFileSync(absolutePath);
-
     // Determine the content type based on the file extension
     const extension = path.extname(absolutePath).toLowerCase();
     let contentType = 'application/octet-stream'; // Default content type
