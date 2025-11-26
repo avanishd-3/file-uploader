@@ -72,7 +72,7 @@ export function TableList(
                       </div>
                     </TableCell>
                     <TableCell>
-                      {file.type === "folder" ? `${(file as FolderItem).items} item${(file as FolderItem).items !== 1 ? "s" : ""}` : (file as FileItem).size}
+                      {file.type === "folder" ? `${(file).items} item${(file).items !== 1 ? "s" : ""}` : (file).size}
                     </TableCell>
                     <TableCell>{formatDate(file.modified)}</TableCell>
                     <TableCell>

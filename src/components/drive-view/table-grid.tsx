@@ -56,7 +56,7 @@ export function TableGrid(
                 <div className="text-center">
                   <p className="font-medium truncate w-full max-w-[120px]">{file.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {file.type === "folder" ? `${(file as FolderItem).items} item${(file as FolderItem).items !== 1 ? "s" : ""}` : (file as FileItem).size}
+                    {file.type === "folder" ? `${(file).items} item${(file).items !== 1 ? "s" : ""}` : (file).size}
                   </p>
                 </div>
               </div>

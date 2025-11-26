@@ -3,7 +3,7 @@ import "server-only";
 // Database operations for folder
 import { db } from "@/server/db";
 import { file, folder } from "@/server/db/schema";
-import { eq, SQL, sql } from "drizzle-orm";
+import { eq, type SQL, sql } from "drizzle-orm";
 
 
 /**

@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/file-upload";
 import { Upload, X } from "lucide-react";
 import * as React from "react";
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 import type { FileorFolderItem } from "./drive-view/file";
 import type { Dispatch, SetStateAction } from "react";
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions";
@@ -111,7 +111,7 @@ export const FileUploadBox = ({
         console.error("Unexpected error during upload:", error);
       }
     },
-    [],
+    [currParentId, setCurrFiles],
   );
  
   const onFileReject = React.useCallback((file: File, message: string) => {

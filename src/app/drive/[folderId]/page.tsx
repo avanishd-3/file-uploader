@@ -5,7 +5,7 @@ export default async function DrivePage({ params }: { params: { folderId?: strin
     // Params are async in Next 15, so we need to await them
     // https://nextjs.org/docs/messages/sync-dynamic-apis
     
-    const { folderId } = await params;
+    const { folderId } = params;
     const parentId = folderId ?? null;
 
     // Use Drive Page to render file manager (so can duplicate for /drive)

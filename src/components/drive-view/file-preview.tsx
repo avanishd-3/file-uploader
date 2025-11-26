@@ -32,7 +32,7 @@ export function FilePreview({  previewModalOpen,
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center">
-              {getFileIcon(activeFile?.type || "other")}
+              {getFileIcon(activeFile?.type ?? "other")}
               <span className="ml-2">{activeFile?.name}</span>
             </DialogTitle>
           </DialogHeader>
@@ -82,7 +82,7 @@ export function FilePreview({  previewModalOpen,
                 {/* Active File can be null, so leave the question or there will be runtime error */}
                 {(activeFile as FileItem)?.size || "Unknown size"}
               </Badge>
-              <Badge variant="outline">{formatDate(activeFile?.modified || new Date())}</Badge>
+              <Badge variant="outline">{formatDate(activeFile?.modified ?? new Date())}</Badge>
             </div>
 
             <Button onClick={() => setPreviewModalOpen(false)}>Close</Button>

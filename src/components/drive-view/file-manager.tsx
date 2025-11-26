@@ -108,7 +108,7 @@ async function downloadClient(file: FileorFolderItem) {
   await downloadFileClient(file.url);
 }
 
-async function downloadFileClient(file_info: string, uri: string = "/api/downloadFile") {
+async function downloadFileClient(file_info: string, uri = "/api/downloadFile") {
   /**
    * Client-side function to download a file from the server.
    * @param file_info - The path or identifier of the file to download. For folders, this is the folder name. For files, 
@@ -131,7 +131,7 @@ async function downloadFileClient(file_info: string, uri: string = "/api/downloa
     link.href = url;
 
     // Set filename received in response
-    const downloadFileName = file_info.split('/').pop() || 'downloaded_file';
+    const downloadFileName = file_info.split('/').pop() ?? 'downloaded_file';
     link.setAttribute('download', downloadFileName);
 
     // Append to the document and trigger click
@@ -184,7 +184,7 @@ export default function FileManager(
   let currentParentId = params.folderId ?? null
   if (Array.isArray(currentParentId)) {
     console.warn("currentParentId should be a string or null, not an array. Using first element.")
-    currentParentId = currentParentId[0] || null
+    currentParentId = currentParentId[0] ?? null
   }
 
   // Non-modal states
@@ -270,7 +270,7 @@ export default function FileManager(
       case "open":
         // If it's a folder, navigate into it; otherwise, open the preview modal
         if (file.type === "folder") {
-          navigateToFolder(file as FolderItem)
+          navigateToFolder(file)
         } else {
           setPreviewModalOpen(true)
         }
@@ -297,7 +297,7 @@ export default function FileManager(
   }
 
   // Handle bulk actions
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = (action: string) : void | Promise<void> => {
     switch (action) {
       case "delete":
         setDeleteModalOpen(true)
@@ -349,14 +349,14 @@ export default function FileManager(
   }
 
   // Rename file/folder
-  const renameFile = () => {
+  const renameFile = async () => {
     if (!activeFile || newFileName.trim() === "") return
 
     // Update folder or file name in the database
     if (activeFile.type === "folder") {
-      renameFolderAction(activeFile.id, newFileName)
+      await renameFolderAction(activeFile.id, newFileName)
     } else {
-      renameFileAction(activeFile.id, newFileName)
+      await renameFileAction(activeFile.id, newFileName)
     }
 
     toast.success(`${activeFile.name} renamed to ${newFileName}`)
@@ -627,10 +627,10 @@ export default function FileManager(
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 // Create new folder on Enter key press
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                   if (e.key === "Enter") {
                     e.preventDefault()
-                    createNewFolder()
+                    await createNewFolder()
                   }
                 }}
               />
@@ -662,10 +662,10 @@ export default function FileManager(
                 value={newFileName}
                 onChange={(e) => setNewFileName(e.target.value)}
                 // Rename file on Enter key press
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                   if (e.key === "Enter") {
                     e.preventDefault()
-                    renameFile()
+                    await renameFile()
                   }
                 }}
               />
@@ -705,8 +705,8 @@ export default function FileManager(
             <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={() => {
-              deleteFiles()
+            <Button variant="destructive" onClick={async () => {
+              await deleteFiles()
               setDeleteModalOpen(false) // Close modal after deletion
             }}>
               Delete
@@ -729,15 +729,15 @@ export default function FileManager(
             <div className="space-y-2">
               <MoveDestinationFolder
                 folder={{name: "Home"}}
-                onClick={() => {
+                onClick={async () => {
                   // Move file/folder to root folder
-                  moveFile(null)
+                  await moveFile(null)
                   setMoveModalOpen(false)
                 }}
-                onKeyDown={(e) => {
+                onKeyDown={async (e) => {
                   if (e.key === "Enter") {
                     e.preventDefault()
-                    moveFile(null)
+                    await moveFile(null)
                     setMoveModalOpen(false)
                   }
                 }}
@@ -750,15 +750,15 @@ export default function FileManager(
                   <MoveDestinationFolder
                     key={folder.id}
                     folder={folder}
-                    onClick={() => {
+                    onClick={async () => {
                       // Move file/folder to the selected folder
-                      moveFile(folder.id)
+                      await moveFile(folder.id)
                       setMoveModalOpen(false)
                     }}
-                    onKeyDown={(e) => {
+                    onKeyDown={async (e) => {
                       if (e.key === "Enter") {
                         e.preventDefault()
-                        moveFile(folder.id)
+                        await moveFile(folder.id)
                         setMoveModalOpen(false)
                       }
                     }}

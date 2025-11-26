@@ -102,8 +102,8 @@ const sampleFiles: FileItem[] = [
 
 // Function to seed the database with initial data
 export async function seedDatabase() {
-    let createFoldersPromise: Promise<any>[] = [];
-    let createFilesPromise: Promise<any>[] = [];
+    const createFoldersPromise: Promise<any>[] = [];
+    const createFilesPromise: Promise<any>[] = [];
 
     // Check if folders already exist to avoid duplication
     const existingFolders = await db.query.folder.findMany();

@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
     // Check if the file exists
     const stats = await fsPromises.stat(absolutePath).catch(() => null);
-    if (!stats || !stats.isFile()) {
+    if (!stats?.isFile()) {
         return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 

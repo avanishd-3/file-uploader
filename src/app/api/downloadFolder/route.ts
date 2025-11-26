@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
         // Check if the file exists
         const stats = await fsPromises.stat(fileAbsolutePath).catch(() => null);
-        if (!stats || !stats.isFile()) {
+        if (!stats?.isFile()) {
             continue; // Skip non-existing files
         }
 
