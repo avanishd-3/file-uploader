@@ -31,6 +31,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
+
+import { Kbd } from "@/components/ui/kbd"
 import { Tabs } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
@@ -466,15 +474,20 @@ export default function FileManager(
 
           {/* Actions Toolbar */}
           <div className="flex items-center space-x-2">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search files..."
-                className="w-full pl-8 md:w-[200px] lg:w-[300px]"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex w-full max-w-xs flex-col gap-6">
+              <InputGroup>
+                <InputGroupInput placeholder="Search files..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+                <InputGroupAddon align="inline-end">
+                  <Kbd>⌘</Kbd>
+                  <Kbd>K</Kbd>
+                </InputGroupAddon>
+              </InputGroup>
             </div>
 
             <Button variant="outline" size="sm" onClick={() => setNewFolderModalOpen(true)}>
