@@ -124,7 +124,8 @@ async function downloadFileClient(file_info: string, uri: string = "/api/downloa
     link.href = url;
 
     // Set filename received in response
-    link.setAttribute('download', file_info);
+    const downloadFileName = file_info.split('/').pop() || 'downloaded_file';
+    link.setAttribute('download', downloadFileName);
 
     // Append to the document and trigger click
     document.body.appendChild(link);
