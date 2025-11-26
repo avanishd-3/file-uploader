@@ -12,7 +12,7 @@ export interface FolderItem {
 export interface FileItem {
   id: string
   name: string
-  type: "pdf" | "image" | "document" | "code" | "other"
+  type: "pdf" | "image" | "document" | "code" | "audio" | "other"
   size: string
   modified: Date
   parentId: string | null

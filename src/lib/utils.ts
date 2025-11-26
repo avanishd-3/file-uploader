@@ -69,6 +69,15 @@ export const getFileType = (fileName: string): FileItem["type"] => {
 
       return "code";
 
+    // Audio types
+    case "mp3":
+    case "wav":
+    case "ogg":
+    case "flac":
+    case "m4a":
+
+      return "audio";
+
     // Unable to determine type
     default:
       return "other"; // Default type for unrecognized extensions

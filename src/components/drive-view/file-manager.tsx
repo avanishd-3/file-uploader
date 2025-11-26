@@ -14,6 +14,7 @@ import {
   FileIcon as FilePdf,
   FileImage,
   FileCode,
+  FileAudio,
   Download,
   Trash2,
   Move,
@@ -68,6 +69,8 @@ const getIcon = (type: FileorFolderType) => {
       return <FileText className="h-5 w-5 text-yellow-500" />
     case "code":
       return <FileCode className="h-5 w-5 text-purple-500" />
+    case "audio":
+      return <FileAudio className="h-5 w-5 text-orange-500" />
     default:
       return <File className="h-5 w-5 text-gray-500" />
   }
