@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState, useTransition, useRef, useEffect} from "react"
+import { useState, useRef, useEffect} from "react"
 import {
   ChevronRight,
   FileText,
@@ -22,7 +22,6 @@ import {
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import {
   Dialog,
   DialogContent,
@@ -44,7 +43,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileItem, FileorFolderItem, FileorFolderType, FolderItem } from "./file"
+import type { FileorFolderItem, FileorFolderType, FolderItem } from "./file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils"
@@ -192,7 +191,6 @@ export default function FileManager(
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [searchQuery, setSearchQuery] = useState("")
-  const [isPending, startTransition] = useTransition()
 
   // Modals state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
