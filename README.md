@@ -1,28 +1,29 @@
-# Create T3 App
+# File-Uploader
+
+Set-and-forget community file uploading service. Deploy at your url, and let others upload and download files.
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
 
-## What's next? How do I make an app with this?
-
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
-
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+## Technologies
 
 - [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
 - [Drizzle](https://orm.drizzle.team)
 - [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- [shadcn/ui](https://ui.shadcn.com/)
 
-## Learn More
+### Components
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Most of the components in src/components/ui are from [shadcn/ui](https://ui.shadcn.com/).
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+But the audio player is from [eleven labs ui](https://ui.elevenlabs.io/docs/components/audio-player).
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+I don't remember where the file dropzone and typewriter are from.
+
+### Architecture
+
+PostreSQL DB stores file and folder metadata, while the files are stored server-side. 
+
+The backend is Next.js API routes and Server Actions. The API routes are for handling uploads and downloads, and the server actions are for CRUD operations on DB.
 
 ## How do I deploy this?
 
