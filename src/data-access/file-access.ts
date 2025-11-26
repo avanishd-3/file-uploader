@@ -83,6 +83,21 @@ export async function getFilesByParentId(parentId: string | null) {
     });
 }
 
+export async function getFilesByParentName(parentName: string) {
+    // Need to get id first b/c that's the only info the files have about their parent folder
+    // TODO: Handle duplicate folder names properly
+    const parentFolder = await db.query.folder.findFirst({
+        where: eq(folder.name, parentName),
+        columns: { id: true },
+    });
+
+    if (!parentFolder) {
+        return [];
+    }
+
+    return getFilesByParentId(parentFolder.id);
+}
+
 /* File mutations */
 export async function renameFile(fileId: string, newName: string) {
     return db.update(file).set({ name: newName }).where(eq(file.id, fileId));

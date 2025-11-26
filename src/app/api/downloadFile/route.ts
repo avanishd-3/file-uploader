@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'; // Disable static generation for this ro
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
-    const filePath = searchParams.get('filePath');
+    const filePath = searchParams.get('path');
 
     if (!filePath) {
         return NextResponse.json({ error: 'filePath query parameter is required' }, { status: 400 });

@@ -1,6 +1,6 @@
 "use server"
 
-import { createFile, deleteFile, moveFile, renameFile } from "@/data-access/file-access";
+import { createFile, deleteFile, moveFile, renameFile, getFilesByParentName} from "@/data-access/file-access";
 
 export async function createFileAction(
     name: string,
@@ -34,3 +34,7 @@ export async function deleteFileAction(fileId: string) {
     return await deleteFile(fileId);
 }
 
+export async function getFilesByParentNameAction(parentName: string) {
+    // This function fetches all files under a specific parent folder based on the parent folder's name
+    return await getFilesByParentName(parentName);
+}

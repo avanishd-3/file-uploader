@@ -91,17 +91,31 @@ function MoveDestinationFolder({
   )
 }
 
-async function downloadFileClient(file: FileorFolderItem) {
+async function downloadClient(file: FileorFolderItem) {
+  if (file.type === "folder") {
+    await downloadFileClient(file.name, "/api/downloadFolder");
+
+    return;
+  }
+
+  await downloadFileClient(file.url);
+}
+
+async function downloadFileClient(file_info: string, uri: string = "/api/downloadFile") {
+  /**
+   * Client-side function to download a file from the server.
+   * @param file_info - The path or identifier of the file to download. For folders, this is the folder name. For files, 
+   * this is the file URL.
+   * @param uri - The API endpoint to fetch the file from. Defaults to "/api/downloadFile". For folders, use "/api/downloadFolder".
+   */
+
   // See: https://www.geeksforgeeks.org/reactjs/how-to-implement-file-download-in-nextjs-using-an-api-route/
-  await fetch("/api/download?filePath=" + encodeURIComponent((file as FileItem).url)).then(async res => {
+  await fetch(uri + "?path=" + encodeURIComponent(file_info)).then(async res => { // Path is a misnomer for folder, but it keeps consistency
     if (!res.ok) {
       toast.error("Failed to download file.");
       return;
     }
     const responseBlob = await res.blob();
-
-    // Use file name for download
-    const filename = file.name;
 
     // Create a temporary anchor element to trigger the download
     const url = window.URL.createObjectURL(new Blob([responseBlob.slice()], { type: responseBlob.type }));
@@ -110,7 +124,7 @@ async function downloadFileClient(file: FileorFolderItem) {
     link.href = url;
 
     // Set filename received in response
-    link.setAttribute('download', filename);
+    link.setAttribute('download', file_info);
 
     // Append to the document and trigger click
     document.body.appendChild(link);
@@ -251,7 +265,7 @@ export default function FileManager(
         setPreviewModalOpen(true)
         break
       case "download":
-        await downloadFileClient(file)
+        await downloadClient(file)
         break;
       default:
         break
@@ -270,9 +284,10 @@ export default function FileManager(
       case "download":
         // Download each selected file
         selectedFiles.forEach(async (fileId) => {
-          const file = filesandFolders.find((f) => f.id === fileId && f.type !== "folder") as FileItem | undefined
+          const file = filesandFolders.find((f) => f.id === fileId)
           if (file) {
-            await downloadFileClient(file)
+            console.log(`Downloading file: ${file.name}`)
+            await downloadClient(file)
           }
         })
         break
