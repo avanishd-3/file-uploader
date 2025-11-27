@@ -6,6 +6,10 @@ import { folder } from "@/server/db/schema";
 import { eq, type SQL, sql } from "drizzle-orm";
 import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
 import type { RowList } from "postgres";
+import { getFilesByParentId } from "./file-access";
+import path from "path";
+import { unlink } from "fs";
+import { get } from "http";
 
 
 /**
@@ -64,6 +68,24 @@ const getDecrementAncestorItemsCountByOne = (parentId: string | null): SQL => {
     
 }
 
+const getAllDescendantFolderIds = (folderId: string | null): SQL => {
+    return sql`
+            -- Use a recursive CTE to get all descendants of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE descendants AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${folderId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN descendants d ON f."parentId" = d.id
+            )
+            SELECT id FROM descendants WHERE id != ${folderId}`; // Exclude the original folderId
+};
+
 // TODO -> Add auth to this stuff
 
 /* Folder queries */
@@ -96,6 +118,10 @@ export async function getFoldersByParentId(parentId: string | null) {
         where: eq(folder.parentId, parentId),
         orderBy: (fields) => fields.name, 
     });
+}
+
+export async function getSubFoldersByParentId(folderId: string | null) {
+    return db.execute(getAllDescendantFolderIds(folderId));
 }
 
 /* Folder mutations */
@@ -177,6 +203,32 @@ export async function deleteFolder(folderId: string) {
 
     if (currentFolder !== undefined && currentFolder.parentId !== null) {
         await db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
+    }
+
+    // Get the files in the folder to delete from server storage
+    const subFoldersPromise = getSubFoldersByParentId(folderId);
+    const filesToDeletePromise = getFilesByParentId(folderId);
+
+    // Batch promises for efficiency
+    let [subFolders, filesToDelete] = await Promise.all([subFoldersPromise, filesToDeletePromise]);
+
+    for (const subFolder of subFolders) {
+        // subFolder.id will not be null here, raw SQL queries just don't have types
+        const subFolderFiles = await getFilesByParentId(subFolder.id as string); 
+        filesToDelete = filesToDelete.concat(subFolderFiles);
+    }
+
+    // Delete files from server storage
+    for (const file of filesToDelete) {
+        // Delete file from server
+        if (file) {
+            const publicDir = path.join(process.cwd(), 'public'); 
+            const filePath = path.join(publicDir, file.url);
+            unlink(filePath, (err) => {
+                // Ignore errors for now
+                // TODO: Handle errors properly
+            });
+        }
     }
 
     // Delete folder itself
