@@ -109,7 +109,7 @@ export function FilePreview({  previewModalOpen,
               </MediaPlayer>
             ): activeFile?.type === "document" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
-                {/* TODO: Add docx preview support. Currently, the iframe will download the file instead */}
+                {/* TODO: Add docx preview support. Currently, the fallback is rendered */}
                 {!fileExists || activeFile.url.split('.').pop() === "docx" ? (
                   // Fallback file icon
                   <>
