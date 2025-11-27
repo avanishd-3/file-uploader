@@ -17,7 +17,9 @@ Most of the components in src/components/ui are from [shadcn/ui](https://ui.shad
 
 But the audio player is from [eleven labs ui](https://ui.elevenlabs.io/docs/components/audio-player).
 
-I don't remember where the file dropzone and typewriter are from.
+The file dropzone is from [Base UI](https://www.diceui.com/docs/components/file-upload).
+
+The typewriter effect is from the [typewriter-effect](https://www.npmjs.com/package/typewriter-effect) package.
 
 ### Architecture
 
