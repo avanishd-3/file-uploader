@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState, type JSX } from "react"
 import { ImageIcon,
     FileIcon as FilePDF,
-    FileText
+    FileText,
+    File
 } from "lucide-react"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
@@ -18,6 +19,8 @@ import { AudioPlayerButton, AudioPlayerDuration, AudioPlayerProgress, AudioPlaye
 
 import { checkFileExistsAction } from "@/lib/actions/other-actions";
 
+
+// Note: If an iframe fails to render something that exists, it will download it instead.
 export function FilePreview({  previewModalOpen,
   setPreviewModalOpen, activeFile, formatDate, getFileIcon } : {
   previewModalOpen: boolean,
@@ -115,7 +118,11 @@ export function FilePreview({  previewModalOpen,
                 )}
                 
               </div>
-            )}
+            ) : (
+                <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                  <File className="h-16 w-16 text-gray-500" />
+                </div>
+                )}
 
             <div className="flex justify-between items-center">
               <div>
