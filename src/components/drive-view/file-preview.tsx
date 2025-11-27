@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useState, type JSX } from "react"
+import { useEffect, useState, type JSX } from "react"
 import { ImageIcon,
     FileIcon as FilePDF,
     FileText
@@ -16,6 +16,7 @@ import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/fil
 import Image from "next/image"
 import { AudioPlayerButton, AudioPlayerDuration, AudioPlayerProgress, AudioPlayerProvider, AudioPlayerSpeed, AudioPlayerTime } from "../ui/audio-player"
 
+import { checkFileExistsAction } from "@/lib/actions/other-actions";
 
 export function FilePreview({  previewModalOpen,
   setPreviewModalOpen, activeFile, formatDate, getFileIcon } : {
@@ -33,7 +34,20 @@ export function FilePreview({  previewModalOpen,
     data: { title: activeFile?.name || "Unknown", artist: "Unknown" },
   }
 
-  const [imagePreviewError, setImagePreviewError] = useState(false)
+  const [fileExists, setFileExists] = useState(true);
+
+  // Check if file exists for preview
+  useEffect(() => {
+    const checkFileExists = async () => {
+      if (activeFile) {
+        const exists = await checkFileExistsAction((activeFile as FileItem).url);
+        setFileExists(exists);
+      }
+    };
+
+    checkFileExists();
+  }, [activeFile]);
+
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
@@ -49,7 +63,7 @@ export function FilePreview({  previewModalOpen,
             {activeFile?.type === "image" ? (
               // Need relative here or image will fill the grandparent div
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
-                {!imagePreviewError ? (
+                {fileExists ? (
                   <Image
                   src={activeFile.url}
                   alt={activeFile.name}
@@ -60,7 +74,6 @@ export function FilePreview({  previewModalOpen,
                     // See: https://nextjs.org/docs/app/api-reference/components/image#other-props
                     objectFit: 'contain', 
                   }}
-                  onError={() => setImagePreviewError(true)} // Diplay image icon if image fails to load
                   className="rounded-md"
                 />
                 ) : (
@@ -68,13 +81,18 @@ export function FilePreview({  previewModalOpen,
                 )}
               </div>
             ) : activeFile?.type === "pdf" ? (
-              // TODO -> Add PDF preview support
-              // Tried using react-pdf but couldn't get onDocumentLoadSuccess to work
-              // React PDF sample for Next.js App Router: https://github.com/wojtekmaj/react-pdf/tree/main/sample/next-app
-              // This doesn't work
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <FilePDF className="h-16 w-16 text-red-500" />
-                <span className="sr-only">PDF preview</span>
+                {!fileExists ? (
+                   // Fallback PDF icon
+                  <>
+                    <FilePDF className="h-16 w-16 text-red-500" />
+                    <span className="sr-only">PDF preview</span>
+                  </>
+                  
+                ) : (
+                  <iframe src={activeFile.url} className="w-full h-full"/>
+                )}
+                
               </div>
             ) : activeFile?.type === "audio" ? (
               <AudioPlayerProvider>

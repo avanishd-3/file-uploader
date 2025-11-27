@@ -1,5 +1,8 @@
 "use server"
 
+import fsPromises from "fs/promises";
+import path from "path";
+
 import type { FolderItem } from "@/lib/file";
 import { getFilesByParentId } from "@/data-access/file-access";
 import { getFoldersByParentId } from "@/data-access/folder-access";
@@ -38,3 +41,26 @@ export async function getFilesandFoldersAction(parentId: string | null) {
 
 }
 
+export async function checkFileExistsAction(url: string): Promise<boolean> {
+    // Check if file exists on Node.js server
+
+    // TODO: Switch to S3 bucket check
+
+    const publicDir = path.join(process.cwd(), 'public'); 
+
+    // Remove query parameters from URL if any
+    const cleanUrl = url?.split('?')[0];
+
+    // Remove invalid URLs
+    if (cleanUrl === undefined || cleanUrl === "" || !cleanUrl.startsWith('/')) {
+        return false;
+    }
+
+    const filePath = path.join(publicDir, cleanUrl);
+    try {
+        const stats = await fsPromises.stat(filePath);
+        return stats.isFile();
+    } catch {
+        return false;
+    }
+} 
