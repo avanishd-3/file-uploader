@@ -51,15 +51,14 @@ export function FilePreview({  previewModalOpen,
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="sm:max-w-[600px] md:max-w-[95vh] md:min-h-[60vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              {getFileIcon(activeFile?.type ?? "other")}
-              <span className="ml-2">{activeFile?.name}</span>
-            </DialogTitle>
-          </DialogHeader>
+          <DialogContent className="sm:max-w-[600px] md:max-w-[95vh] md:min-h-[60vh]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                {getFileIcon(activeFile?.type ?? "other")}
+                <span className="ml-2">{activeFile?.name}</span>
+              </DialogTitle>
+            </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center">
             {activeFile?.type === "image" ? (
               // Need relative here or image will fill the grandparent div
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
@@ -83,7 +82,7 @@ export function FilePreview({  previewModalOpen,
             ) : activeFile?.type === "pdf" ? (
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
-                   // Fallback PDF icon
+                  // Fallback PDF icon
                   <>
                     <FilePDF className="h-16 w-16 text-red-500" />
                     <span className="sr-only">PDF preview</span>
@@ -110,20 +109,19 @@ export function FilePreview({  previewModalOpen,
                 <span className="sr-only">File preview</span>
               </div>
             )}
-          </div>
 
-          <div className="flex justify-between items-center">
-            <div>
-              <Badge variant="outline" className="mr-2">
-                {/* Active File can be null, so leave the question or there will be runtime error */}
-                {(activeFile as FileItem)?.size || "Unknown size"}
-              </Badge>
-              <Badge variant="outline">{formatDate(activeFile?.modified ?? new Date())}</Badge>
+            <div className="flex justify-between items-center">
+              <div>
+                <Badge variant="outline" className="mr-2">
+                  {/* Active File can be null, so leave the question or there will be runtime error */}
+                  {(activeFile as FileItem)?.size || "Unknown size"}
+                </Badge>
+                <Badge variant="outline">{formatDate(activeFile?.modified ?? new Date())}</Badge>
+              </div>
+
+              <Button onClick={() => setPreviewModalOpen(false)}>Close</Button>
             </div>
-
-            <Button onClick={() => setPreviewModalOpen(false)}>Close</Button>
-          </div>
-        </DialogContent>
+          </DialogContent>
       </Dialog>
     )
 }
