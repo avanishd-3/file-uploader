@@ -8,6 +8,9 @@ import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
 import type { RowList } from "postgres";
 import type { FileType } from "@/lib/file";
 
+import { unlink } from "fs";
+import path from "path";
+
 
 /* Ancestor item count queries */
 
@@ -173,12 +176,24 @@ export async function deleteFile(fileId: string) {
     // Update ancestor item counts
     const currentFile = await db.query.file.findFirst({
         where: eq(file.id, fileId),
-        columns: { parentId: true },
+        columns: { parentId: true, url: true },
     });
 
     if (currentFile !== undefined && currentFile.parentId !== null) {
         await db.execute(getDecrementAncestorItemsByOneQuery(currentFile.parentId));
     }
+
+    // Delete file from server
+    if (currentFile) {
+        const publicDir = path.join(process.cwd(), 'public'); 
+        const filePath = path.join(publicDir, currentFile.url);
+        unlink(filePath, (err) => {
+            // Ignore errors for now
+            // TODO: Handle errors properly
+        });
+    }
+
+    // Delete file from database
 
     return db.delete(file).where(eq(file.id, fileId));
 }
