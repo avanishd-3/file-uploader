@@ -15,7 +15,7 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 
 Most of the components in src/components/ui are from [shadcn/ui](https://ui.shadcn.com/).
 
-The file dropzone and audio player are from [Dice UI](https://www.diceui.com/).
+The file dropzone, audio player, and video player are from [Dice UI](https://www.diceui.com/).
 
 
 The typewriter effect is from the [typewriter-effect](https://www.npmjs.com/package/typewriter-effect) package.
