@@ -104,9 +104,16 @@ export function FilePreview({  previewModalOpen,
                 </div>  
               </AudioPlayerProvider>
             ): (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
-                <FileText className="h-16 w-16 text-muted-foreground" />
-                <span className="sr-only">File preview</span>
+              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                {!fileExists ? (
+                  // Fallback file icon
+                  <>
+                    <FileText className="h-16 w-16 text-muted-foreground" />
+                  </>
+                ) : (
+                  <iframe src={(activeFile as FileItem)?.url} className="w-full h-full"/>
+                )}
+                
               </div>
             )}
 
