@@ -81,7 +81,7 @@ export async function getFolderById(folderId: string) {
 }
 
 export async function getFoldersByParentId(parentId: string | null) {
-    // Get all files that belong to the specified parentId
+    // Get all folders that belong to the specified parentId
     // Sort by name to make it look better on the UI
     // Faster than doing JS sort
 
