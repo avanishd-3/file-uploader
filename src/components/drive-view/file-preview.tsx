@@ -61,7 +61,7 @@ export function FilePreview({  previewModalOpen,
 
             {activeFile?.type === "image" ? (
               // Need relative here or image will fill the grandparent div
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
+              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
                 {fileExists ? (
                   <Image
                   src={activeFile.url}
@@ -80,7 +80,7 @@ export function FilePreview({  previewModalOpen,
                 )}
               </div>
             ) : activeFile?.type === "pdf" ? (
-              <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center">
+              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback PDF icon
                   <>
