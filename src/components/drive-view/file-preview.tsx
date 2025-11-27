@@ -102,9 +102,10 @@ export function FilePreview({  previewModalOpen,
                   <AudioPlayerSpeed />
                 </div>  
               </AudioPlayerProvider>
-            ): (
+            ): activeFile?.type === "document" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
-                {!fileExists ? (
+                {/* TODO: Add docx preview support. Currently, the iframe will download the file instead */}
+                {!fileExists || activeFile.url.split('.').pop() === "docx" ? (
                   // Fallback file icon
                   <>
                     <FileText className="h-16 w-16 text-muted-foreground" />
