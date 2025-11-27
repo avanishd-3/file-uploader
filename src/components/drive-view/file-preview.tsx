@@ -15,9 +15,8 @@ import { ImageIcon,
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import Image from "next/image"
-import { AudioPlayerButton, AudioPlayerDuration, AudioPlayerProgress, AudioPlayerProvider, AudioPlayerSpeed, AudioPlayerTime } from "../ui/audio-player"
-
 import { checkFileExistsAction } from "@/lib/actions/other-actions";
+import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerLoop, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerVolume } from "../ui/media-player"
 
 
 // Note: If an iframe fails to render something that exists, it will download it instead.
@@ -31,11 +30,7 @@ export function FilePreview({  previewModalOpen,
 }) {
 
   // This should only be used if activeFile is an audio file
-  const track = {
-    id: activeFile?.id || "track-1",
-    src: activeFile && (activeFile as FileItem).url ? (activeFile as FileItem).url : "",
-    data: { title: activeFile?.name || "Unknown", artist: "Unknown" },
-  }
+  const activeFileUrl = activeFile && (activeFile as FileItem).url ? (activeFile as FileItem).url : ""
 
   const [fileExists, setFileExists] = useState(true);
 
@@ -96,15 +91,22 @@ export function FilePreview({  previewModalOpen,
                 
               </div>
             ) : activeFile?.type === "audio" ? (
-              <AudioPlayerProvider>
-                <div className="flex items-center gap-4">
-                  <AudioPlayerButton item={track} />
-                  <AudioPlayerTime />
-                  <AudioPlayerProgress className="flex-1" />
-                  <AudioPlayerDuration />
-                  <AudioPlayerSpeed />
-                </div>  
-              </AudioPlayerProvider>
+              <MediaPlayer className="h-20">
+                <MediaPlayerAudio className="sr-only">
+                  <source src={activeFileUrl} type="audio/mp3" />
+                </MediaPlayerAudio>
+                <MediaPlayerControls className="flex-col items-start gap-2.5">
+                  <MediaPlayerSeek withTime />
+                  <div className="flex w-full items-center justify-center gap-2">
+                    <MediaPlayerSeekBackward />
+                    <MediaPlayerPlay />
+                    <MediaPlayerSeekForward />
+                    <MediaPlayerVolume />
+                    <MediaPlayerPlaybackSpeed />
+                    <MediaPlayerLoop />
+                  </div>
+                </MediaPlayerControls>
+              </MediaPlayer>
             ): activeFile?.type === "document" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {/* TODO: Add docx preview support. Currently, the iframe will download the file instead */}

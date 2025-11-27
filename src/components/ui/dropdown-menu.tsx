@@ -31,13 +31,15 @@ function DropdownMenuTrigger({
   )
 }
 
+// Portal container needed for video player
 function DropdownMenuContent({
   className,
+  container,
   sideOffset = 4,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Content> & { container?: DropdownMenuPrimitive.DropdownMenuPortalProps["container"] }) {
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal container={container}>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
         sideOffset={sideOffset}
