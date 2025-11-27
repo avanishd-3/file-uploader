@@ -91,6 +91,7 @@ export function FilePreview({  previewModalOpen,
                 
               </div>
             ) : activeFile?.type === "audio" ? (
+              // See: https://www.diceui.com/docs/components/media-player#audio-player
               <MediaPlayer className="h-20">
                 <MediaPlayerAudio className="sr-only">
                   <source src={activeFileUrl} type="audio/mp3" />
