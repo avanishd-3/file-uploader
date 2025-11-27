@@ -15,6 +15,7 @@ import {
   FileImage,
   FileCode,
   FileAudio,
+  FileVideo,
   Download,
   Trash2,
   Move,
@@ -71,6 +72,8 @@ const getIcon = (type: FileorFolderType) => {
       return <FileCode className="h-5 w-5 text-purple-500" />
     case "audio":
       return <FileAudio className="h-5 w-5 text-orange-500" />
+    case "video":
+      return <FileVideo className="h-5 w-5 text-pink-500" />
     default:
       return <File className="h-5 w-5 text-gray-500" />
   }

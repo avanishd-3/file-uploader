@@ -16,7 +16,7 @@ import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/fil
 
 import Image from "next/image"
 import { checkFileExistsAction } from "@/lib/actions/other-actions";
-import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerLoop, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerVolume } from "../ui/media-player"
+import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPiP, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
 
 
 // Note: If an iframe fails to render something that exists, it will download it instead.
@@ -105,6 +105,31 @@ export function FilePreview({  previewModalOpen,
                     <MediaPlayerVolume />
                     <MediaPlayerPlaybackSpeed />
                     <MediaPlayerLoop />
+                  </div>
+                </MediaPlayerControls>
+              </MediaPlayer>
+            ): activeFile?.type === "video" ? (
+              // See: https://www.diceui.com/docs/components/media-player#installation
+              // No PiP (picture-in-picture) b/c browsers (at least Firefox) overlay their own button on videos
+              <MediaPlayer>
+                <MediaPlayerVideo>
+                  <source src={activeFileUrl} type="video/mp4" />
+                </MediaPlayerVideo>
+                <MediaPlayerControls className="flex-col items-start gap-2.5">
+                  <MediaPlayerControlsOverlay />
+                  <MediaPlayerSeek />
+                  <div className="flex w-full items-center gap-2">
+                    <div className="flex flex-1 items-center gap-2">
+                      <MediaPlayerPlay />
+                      <MediaPlayerSeekBackward />
+                      <MediaPlayerSeekForward />
+                      <MediaPlayerVolume expandable/>
+                      <MediaPlayerTime />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MediaPlayerPlaybackSpeed />
+                      <MediaPlayerFullscreen />
+                    </div>
                   </div>
                 </MediaPlayerControls>
               </MediaPlayer>

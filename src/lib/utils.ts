@@ -78,6 +78,15 @@ export const getFileType = (fileName: string): FileType => {
 
       return "audio";
 
+    // Video types
+    case "mp4":
+    case "mov":
+    case "avi":
+    case "mkv":
+    case "webm":
+
+      return "video";
+
     // Unable to determine type
     default:
       return "other"; // Default type for unrecognized extensions

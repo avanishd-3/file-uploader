@@ -43,7 +43,7 @@ export const file = createTable(
   (d) => ({
     id: d.uuid().primaryKey().defaultRandom(), // Use UUIDs for files
     name: d.text().notNull(),
-    type: d.varchar({ enum: ["pdf", "image", "document", "code", "audio", "other"] }).notNull(),
+    type: d.varchar({ enum: ["pdf", "image", "document", "code", "audio", "video", "other"] }).notNull(),
     size: d.varchar({ length: 64 }).notNull(),
     modified: d.timestamp({ withTimezone: true }).notNull(),
     parentId: d.uuid().references(() => folder.id, { onDelete: "cascade"}), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
