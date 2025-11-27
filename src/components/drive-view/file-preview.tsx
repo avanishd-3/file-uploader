@@ -51,7 +51,7 @@ export function FilePreview({  previewModalOpen,
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] md:max-w-[95vh] md:min-h-[60vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center">
               {getFileIcon(activeFile?.type ?? "other")}
@@ -59,7 +59,7 @@ export function FilePreview({  previewModalOpen,
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col items-center justify-center p-4 min-h-[300px]">
+          <div className="flex flex-col items-center justify-center">
             {activeFile?.type === "image" ? (
               // Need relative here or image will fill the grandparent div
               <div className="w-full h-[300px] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
