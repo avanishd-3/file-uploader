@@ -206,17 +206,16 @@ export async function deleteFolder(folderId: string) {
     }
 
     // Get the files in the folder to delete from server storage
-    const subFoldersPromise = getSubFoldersByParentId(folderId);
-    const filesToDeletePromise = getFilesByParentId(folderId);
+    const subFolders = await getSubFoldersByParentId(folderId);
 
-    // Batch promises for efficiency
-    let [subFolders, filesToDelete] = await Promise.all([subFoldersPromise, filesToDeletePromise]);
+    const descendantFolderIds = subFolders.map(row => row.id as string);
 
-    for (const subFolder of subFolders) {
-        // subFolder.id will not be null here, raw SQL queries just don't have types
-        const subFolderFiles = await getFilesByParentId(subFolder.id as string); 
-        filesToDelete = filesToDelete.concat(subFolderFiles);
-    }
+    const allFolderIds = [folderId, ...descendantFolderIds];
+
+    // Get all files in these folders
+    const filesToDelete = await db.query.file.findMany({
+        where: (fields, { inArray}) => inArray(fields.parentId, allFolderIds),
+    });
 
     // Delete files from server storage
     for (const file of filesToDelete) {
