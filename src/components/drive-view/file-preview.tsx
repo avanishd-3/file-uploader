@@ -85,7 +85,6 @@ export function FilePreview({  previewModalOpen,
                   // Fallback PDF icon
                   <>
                     <FilePDF className="h-16 w-16 text-red-500" />
-                    <span className="sr-only">PDF preview</span>
                   </>
                   
                 ) : (
