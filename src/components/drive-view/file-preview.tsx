@@ -7,12 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, type JSX } from "react"
-import { ImageIcon,
-    FileIcon as FilePDF,
-    FileText,
-    File,
-    FileCode,
-} from "lucide-react"
+import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import type { BundledLanguage } from "@/components/kibo-ui/code-block"
@@ -108,7 +103,7 @@ export function FilePreview({  previewModalOpen,
                   className="rounded-md"
                 />
                 ) : (
-                  <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                  <ImageIcon size="lg" />
                 )}
               </div>
             ) : activeFile?.type === "pdf" ? (
@@ -116,7 +111,7 @@ export function FilePreview({  previewModalOpen,
                 {!fileExists ? (
                   // Fallback PDF icon
                   <>
-                    <FilePDF className="h-16 w-16 text-red-500" />
+                    <PDFIcon size="lg" />
                   </>
                   
                 ) : (
@@ -173,7 +168,7 @@ export function FilePreview({  previewModalOpen,
                 {!fileExists || activeFile.url.split('.').pop() === "docx" ? (
                   // Fallback file icon
                   <>
-                    <FileText className="h-16 w-16 text-muted-foreground" />
+                    <TextIcon size="lg" />
                   </>
                 ) : (
                   <iframe src={(activeFile as FileItem)?.url} className="w-full h-full"/>
@@ -185,7 +180,7 @@ export function FilePreview({  previewModalOpen,
                 {!fileExists ? (
                   // Fallback file icon
                   <>
-                    <FileCode className="h-16 w-16 text-muted-foreground" />
+                    <CodeIcon size="lg" />
                   </>
                 ) : (
                   // See: https://www.kibo-ui.com/components/code-block#installation
@@ -225,7 +220,7 @@ export function FilePreview({  previewModalOpen,
                 
               </div> ) : (
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
-                  <File className="h-16 w-16 text-gray-500" />
+                  <GenericFileIcon size="lg" />
                 </div>
                 )}
 

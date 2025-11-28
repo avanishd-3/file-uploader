@@ -3,19 +3,12 @@
 import { useState, useRef, useEffect} from "react"
 import {
   ChevronRight,
-  FileText,
   Folder,
   Grid,
   List,
   Plus,
   Search,
   Upload,
-  File,
-  FileIcon as FilePdf,
-  FileImage,
-  FileCode,
-  FileAudio,
-  FileVideo,
   Download,
   Trash2,
   Move,
@@ -56,26 +49,27 @@ import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
 import { createFolderAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
 import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
+import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
   switch (type) {
     case "folder":
-      return <Folder className="h-5 w-5 text-blue-500" />
+      return <FolderIcon />
     case "pdf":
-      return <FilePdf className="h-5 w-5 text-red-500" />
+      return <PDFIcon />
     case "image":
-      return <FileImage className="h-5 w-5 text-green-500" />
+      return <ImageIcon />
     case "document":
-      return <FileText className="h-5 w-5 text-yellow-500" />
+      return <TextIcon />
     case "code":
-      return <FileCode className="h-5 w-5 text-purple-500" />
+      return <CodeIcon />
     case "audio":
-      return <FileAudio className="h-5 w-5 text-orange-500" />
+      return <AudioIcon />
     case "video":
-      return <FileVideo className="h-5 w-5 text-pink-500" />
+      return <VideoIcon />
     default:
-      return <File className="h-5 w-5 text-gray-500" />
+      return <GenericFileIcon  />
   }
 }
 
