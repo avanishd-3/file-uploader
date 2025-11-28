@@ -20,7 +20,7 @@ The file dropzone, audio player, and video player are from [Dice UI](https://www
 The code preview is from [Kibo UI](https://www.kibo-ui.com/components/code-block#installation).
 
 
-The typewriter effect is from the [typewriter-effect](https://www.npmjs.com/package/typewriter-effect) package.
+The typewriter effect is from the [shadcn.io](https://www.shadcn.io/text/typing-text#api-reference).
 
 ### Architecture
 
