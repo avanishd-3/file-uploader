@@ -259,7 +259,10 @@ const codeBlockClassName = cn(
   "[&_code]:bg-transparent",
   "[&_.line]:px-4",
   "[&_.line]:w-full",
-  "[&_.line]:relative"
+  "[&_.line]:relative",
+  // These next 2 are to enable scrolling within the code block
+  "max-h-120",
+  "overflow-auto",
 );
 
 const highlight = (
