@@ -17,6 +17,8 @@ Most of the components in src/components/ui are from [shadcn/ui](https://ui.shad
 
 The file dropzone, audio player, and video player are from [Dice UI](https://www.diceui.com/).
 
+The code preview is from [Kibo UI](https://www.kibo-ui.com/components/code-block#installation).
+
 
 The typewriter effect is from the [typewriter-effect](https://www.npmjs.com/package/typewriter-effect) package.
 

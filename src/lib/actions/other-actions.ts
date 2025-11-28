@@ -64,3 +64,18 @@ export async function checkFileExistsAction(url: string): Promise<boolean> {
         return false;
     }
 } 
+
+export async function readFileContentAction(filePath: string): Promise<string> {
+    // Read file content from Node.js server
+    const publicDir = path.join(process.cwd(), 'public'); 
+    const fullPath = path.join(publicDir, filePath);
+
+    try {
+        console.log("Reading file from path:", fullPath);
+        const content = await fsPromises.readFile(fullPath, 'utf-8');
+        return content;
+    } catch (error) {
+        console.error("Error reading file:", error);
+        throw error;
+    }
+}

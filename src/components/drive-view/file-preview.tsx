@@ -10,13 +10,18 @@ import { useEffect, useState, type JSX } from "react"
 import { ImageIcon,
     FileIcon as FilePDF,
     FileText,
-    File
+    File,
+    FileCode,
 } from "lucide-react"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
+import type { BundledLanguage } from "@/components/kibo-ui/code-block"
+import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue } from "@/components/kibo-ui/code-block"
+
 import Image from "next/image"
-import { checkFileExistsAction } from "@/lib/actions/other-actions";
+import { checkFileExistsAction, readFileContentAction } from "@/lib/actions/other-actions";
 import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPiP, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
+import { toast } from "sonner"
 
 
 // Note: If an iframe fails to render something that exists, it will download it instead.
@@ -32,6 +37,36 @@ export function FilePreview({  previewModalOpen,
   // This should only be used if activeFile is an audio file
   const activeFileUrl = activeFile && (activeFile as FileItem).url ? (activeFile as FileItem).url : ""
 
+  // Code block data for code files
+  let code: CodeBlockData[] = [];
+
+  // Destruct into array of JSON for code block
+  const [codeText, setCodeText] = useState("");
+  const activeFileIsCode = activeFile !== null && activeFile.type === "code"; // So effect doesn't run for non-code files
+  useEffect(() => {
+    const getCode = async () => {
+      if (activeFile !== null) { // Need this fo TS
+        console.log("Fetching code for file:", activeFile.name);
+        const result = await readFileContentAction((activeFile as FileItem).url);
+        setCodeText(result);
+        console.log("Fetched code content:", result);
+      }
+      
+    };
+    getCode();
+  }, [activeFile, activeFileIsCode]);
+  
+  if (activeFile?.type === "code") {
+    console.log("Code text:", codeText);
+    code = [
+      {
+        language: activeFile.url.split('.').pop() as string, // This should never be undefined
+        filename: activeFile.name,
+        code: codeText,
+      }
+    ]
+  }
+
   const [fileExists, setFileExists] = useState(true);
 
   // Check if file exists for preview
@@ -45,7 +80,6 @@ export function FilePreview({  previewModalOpen,
 
     checkFileExists();
   }, [activeFile]);
-
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
@@ -146,7 +180,50 @@ export function FilePreview({  previewModalOpen,
                 )}
                 
               </div>
-            ) : (
+            ) : activeFile?.type === "code" ? (
+              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                {!fileExists ? (
+                  // Fallback file icon
+                  <>
+                    <FileCode className="h-16 w-16 text-muted-foreground" />
+                  </>
+                ) : (
+                  // See: https://www.kibo-ui.com/components/code-block#installation
+                  <CodeBlock data={code} defaultValue={code[0]?.language}>
+                    <CodeBlockHeader>
+                      <CodeBlockFiles>
+                        {(item) => (
+                          <CodeBlockFilename key={item.language} value={item.language}>{item.filename}</CodeBlockFilename>
+                        )}
+                      </CodeBlockFiles>
+                    <CodeBlockSelect>
+                      <CodeBlockSelectTrigger>
+                        <CodeBlockSelectValue />
+                      </CodeBlockSelectTrigger>
+                      <CodeBlockSelectContent>
+                        {(item) => (
+                          <CodeBlockSelectItem key={item.language} value={item.language}>
+                            {item.language}
+                          </CodeBlockSelectItem>
+                        )}
+                      </CodeBlockSelectContent>
+                    </CodeBlockSelect>
+                    <CodeBlockCopyButton
+                      onCopy={() => toast.success("Code copied to clipboard")}
+                      onError={() => toast.error("Failed to copy code to clipboard")}
+                    />
+                    </CodeBlockHeader>
+                    <CodeBlockBody>
+                      {(item) => (
+                        <CodeBlockItem key={item.language} value={item.language}>
+                          <CodeBlockContent language={item.language as BundledLanguage}>{item.code}</CodeBlockContent>
+                        </CodeBlockItem>
+                      )}
+                    </CodeBlockBody>
+                  </CodeBlock>
+                )}
+                
+              </div> ) : (
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                   <File className="h-16 w-16 text-gray-500" />
                 </div>
