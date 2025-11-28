@@ -7,7 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, type JSX } from "react"
-import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
+import { AudioIcon, CodeIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import type { BundledLanguage } from "@/components/kibo-ui/code-block"
@@ -120,6 +120,13 @@ export function FilePreview({  previewModalOpen,
                 
               </div>
             ) : activeFile?.type === "audio" ? (
+                <>
+              {!fileExists ? (
+                // Fallback audio icon
+                <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                  <AudioIcon size="lg" />
+                </div>
+              ) : 
               // See: https://www.diceui.com/docs/components/media-player#audio-player
               <MediaPlayer className="h-20">
                 <MediaPlayerAudio className="sr-only">
@@ -137,7 +144,17 @@ export function FilePreview({  previewModalOpen,
                   </div>
                 </MediaPlayerControls>
               </MediaPlayer>
+              }
+                </>
+              
             ): activeFile?.type === "video" ? (
+              <>
+              {!fileExists ? (
+                // Fallback audio icon
+                <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                  <AudioIcon size="lg" />
+                </div>
+              ) :
               // See: https://www.diceui.com/docs/components/media-player#installation
               // No PiP (picture-in-picture) b/c browsers (at least Firefox) overlay their own button on videos
               <MediaPlayer>
@@ -162,6 +179,8 @@ export function FilePreview({  previewModalOpen,
                   </div>
                 </MediaPlayerControls>
               </MediaPlayer>
+              }
+              </>
             ): activeFile?.type === "document" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {/* TODO: Add docx preview support. Currently, the fallback is rendered */}
