@@ -24,8 +24,8 @@ export default function HomePage() {
   
       {/* Explanation of service */}
       <p className="text-2xl mb-5 max-w-120 text-center">
-        Secure, private, and easy file upload service for your personal use.
-      </p>
+        Set-and-forget community file management.
+      </p>      
 
       {/* Sign in button */}
       <Button
