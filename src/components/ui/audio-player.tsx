@@ -292,20 +292,20 @@ export const AudioPlayerProgress = ({
       {...otherProps}
       value={[time]}
       onValueChange={(vals) => {
-        player.seek(vals[0])
+        player.seek(vals[0]!)
         otherProps.onValueChange?.(vals)
       }}
       min={0}
       max={player.duration ?? 0}
-      step={otherProps.step || 0.25}
+      step={otherProps.step ?? 0.25}
       onPointerDown={(e) => {
         wasPlayingRef.current = player.isPlaying
         player.pause()
         otherProps.onPointerDown?.(e)
       }}
-      onPointerUp={(e) => {
+      onPointerUp={async (e) => {
         if (wasPlayingRef.current) {
-          player.play()
+          await player.play()
         }
         otherProps.onPointerUp?.(e)
       }}
@@ -313,11 +313,11 @@ export const AudioPlayerProgress = ({
         "group/player relative flex h-4 touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
         otherProps.className
       )}
-      onKeyDown={(e) => {
+      onKeyDown={async (e) => {
         if (e.key === " ") {
           e.preventDefault()
           if (!player.isPlaying) {
-            player.play()
+            await player.play()
           } else {
             player.pause()
           }
@@ -457,9 +457,9 @@ export function AudioPlayerButton<TData = unknown>({
       <PlayButton
         {...otherProps}
         playing={player.isPlaying}
-        onPlayingChange={(shouldPlay) => {
+        onPlayingChange={async (shouldPlay) => {
           if (shouldPlay) {
-            player.play()
+            await player.play()
           } else {
             player.pause()
           }
@@ -473,9 +473,9 @@ export function AudioPlayerButton<TData = unknown>({
     <PlayButton
       {...otherProps}
       playing={player.isItemActive(item.id) && player.isPlaying}
-      onPlayingChange={(shouldPlay) => {
+      onPlayingChange={async (shouldPlay) => {
         if (shouldPlay) {
-          player.play(item)
+          await player.play(item)
         } else {
           player.pause()
         }

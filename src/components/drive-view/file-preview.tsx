@@ -15,7 +15,7 @@ import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlo
 
 import Image from "next/image"
 import { checkFileExistsAction, readFileContentAction } from "@/lib/actions/other-actions";
-import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPiP, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
+import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
 import { toast } from "sonner"
 
 
@@ -48,14 +48,14 @@ export function FilePreview({  previewModalOpen,
       }
       
     };
-    getCode();
+    void getCode();
   }, [activeFile, activeFileIsCode]);
   
   if (activeFile?.type === "code") {
     console.log("Code text:", codeText);
     code = [
       {
-        language: activeFile.url.split('.').pop() as string, // This should never be undefined
+        language: activeFile.url.split('.').pop()!, // This should never be undefined
         filename: activeFile.name,
         code: codeText,
       }
@@ -73,7 +73,7 @@ export function FilePreview({  previewModalOpen,
       }
     };
 
-    checkFileExists();
+    void checkFileExists();
   }, [activeFile]);
 
     return (
@@ -190,7 +190,7 @@ export function FilePreview({  previewModalOpen,
                     <TextIcon size="lg" />
                   </>
                 ) : (
-                  <iframe src={(activeFile as FileItem)?.url} className="w-full h-full"/>
+                  <iframe src={(activeFile)?.url} className="w-full h-full"/>
                 )}
                 
               </div>

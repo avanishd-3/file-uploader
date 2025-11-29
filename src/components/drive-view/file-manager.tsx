@@ -205,7 +205,7 @@ export default function FileManager(
   const [filesandFolders, setFilesandFolders] = useState<FileorFolderItem[]>(initialItems);
 
   // All folders for move modal
-  const [allUserFolders, setAllUserFolders] = useState<FolderItem[]>(allFolders);
+  const [allUserFolders] = useState<FolderItem[]>(allFolders);
 
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")

@@ -3,6 +3,7 @@ import { db } from "@/server/db";
 import { createFile } from "@/data-access/file-access";
 import { createFolder } from "@/data-access/folder-access";
 import type { FileItem, FolderItem } from "@/lib/file";
+import type { RowList } from "postgres";
 
 // Sample data to seed the database
 
@@ -102,8 +103,8 @@ const sampleFiles: FileItem[] = [
 
 // Function to seed the database with initial data
 export async function seedDatabase() {
-    const createFoldersPromise: Promise<any>[] = [];
-    const createFilesPromise: Promise<any>[] = [];
+    const createFoldersPromise: Promise<RowList<never[]>>[] = [];
+    const createFilesPromise: Promise<RowList<never[]>>[] = [];
 
     // Check if folders already exist to avoid duplication
     const existingFolders = await db.query.folder.findMany();

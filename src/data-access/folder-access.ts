@@ -6,11 +6,8 @@ import { folder } from "@/server/db/schema";
 import { eq, type SQL, sql } from "drizzle-orm";
 import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
 import type { RowList } from "postgres";
-import { getFilesByParentId } from "./file-access";
 import path from "path";
 import { unlink } from "fs";
-import { get } from "http";
-
 
 /**
  * How item counts work:
@@ -144,7 +141,7 @@ export async function moveFolder(
     let incrementPromise: PgRaw<RowList<Record<string, unknown>[]>> | undefined;
     
     // Decrement the item count of the current parent folder if it exists
-    if (currentFolder !== undefined && currentFolder.parentId !== null) {
+    if (currentFolder?.parentId !== null && currentFolder !== undefined) {
         decrementPromise = db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
     }
 
@@ -201,7 +198,7 @@ export async function deleteFolder(folderId: string) {
         columns: { parentId: true, items: true },
     });
 
-    if (currentFolder !== undefined && currentFolder.parentId !== null) {
+    if (currentFolder?.parentId !== null && currentFolder !== undefined) {
         await db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
     }
 
@@ -223,7 +220,7 @@ export async function deleteFolder(folderId: string) {
         if (file) {
             const publicDir = path.join(process.cwd(), 'public'); 
             const filePath = path.join(publicDir, file.url);
-            unlink(filePath, (err) => {
+            unlink(filePath, (_err) => {
                 // Ignore errors for now
                 // TODO: Handle errors properly
             });

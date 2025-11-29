@@ -56,6 +56,8 @@ import {
 import { useComposedRefs } from "@/lib/compose-refs";
 import { cn } from "@/lib/utils/utils";
 
+import Image from "next/image";
+
 const ROOT_NAME = "MediaPlayer";
 const SEEK_NAME = "MediaPlayerSeek";
 const SETTINGS_NAME = "MediaPlayerSettings";
@@ -89,9 +91,7 @@ function useDirection(dirProp?: Direction): Direction {
 function useLazyRef<T>(fn: () => T) {
   const ref = React.useRef<T | null>(null);
 
-  if (ref.current === null) {
-    ref.current = fn();
-  }
+  ref.current ??= fn();
 
   return ref as React.RefObject<T>;
 }
@@ -319,7 +319,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         store.setState("controlsVisible", false);
       }, 3000);
     }
-  }, [store.setState, autoHide, mediaPaused, menuOpen, dragging]);
+  }, [store, autoHide, mediaPaused, menuOpen, dragging]);
 
   const onVolumeIndicatorTrigger = React.useCallback(() => {
     if (menuOpen) return;
@@ -337,7 +337,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
     if (autoHide) {
       onControlsShow();
     }
-  }, [store.setState, menuOpen, autoHide, onControlsShow]);
+  }, [menuOpen, store, autoHide, onControlsShow]);
 
   const onMouseLeave = React.useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -349,14 +349,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         store.setState("controlsVisible", false);
       }
     },
-    [
-      store.setState,
-      rootImplProps.onMouseLeave,
-      autoHide,
-      mediaPaused,
-      menuOpen,
-      dragging,
-    ],
+    [rootImplProps, autoHide, mediaPaused, menuOpen, dragging, store],
   );
 
   const onMouseMove = React.useCallback(
@@ -369,7 +362,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         onControlsShow();
       }
     },
-    [autoHide, rootImplProps.onMouseMove, onControlsShow],
+    [rootImplProps, autoHide, onControlsShow],
   );
 
   React.useEffect(() => {
@@ -384,14 +377,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
     if (autoHide) {
       onControlsShow();
     }
-  }, [
-    store.setState,
-    onControlsShow,
-    autoHide,
-    menuOpen,
-    mediaPaused,
-    dragging,
-  ]);
+  }, [store.setState, onControlsShow, autoHide, menuOpen, mediaPaused, dragging, store]);
 
   const onKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -638,16 +624,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         }
       }
     },
-    [
-      dispatch,
-      rootImplProps.onKeyDown,
-      onVolumeIndicatorTrigger,
-      onPipError,
-      disabled,
-      isVideo,
-      onControlsShow,
-      autoHide,
-    ],
+    [disabled, rootImplProps, autoHide, onControlsShow, dispatch, isVideo, onVolumeIndicatorTrigger, onPipError],
   );
 
   const onKeyUp = React.useCallback(
@@ -659,7 +636,7 @@ function MediaPlayerRootImpl(props: MediaPlayerRootProps) {
         onVolumeIndicatorTrigger();
       }
     },
-    [rootImplProps.onKeyUp, onVolumeIndicatorTrigger],
+    [rootImplProps, onVolumeIndicatorTrigger],
   );
 
   React.useEffect(() => {
@@ -827,7 +804,7 @@ function MediaPlayerVideo(props: MediaPlayerVideoProps) {
           : MediaActionTypes.MEDIA_PAUSE_REQUEST,
       });
     },
-    [dispatch, props.onClick],
+    [dispatch, props],
   );
 
   const VideoPrimitive = asChild ? Slot : "video";
@@ -1247,7 +1224,7 @@ function MediaPlayerControlsOverlay(props: MediaPlayerControlsOverlayProps) {
   );
 }
 
-interface MediaPlayerPlayProps extends React.ComponentProps<typeof Button> {}
+type MediaPlayerPlayProps = React.ComponentProps<typeof Button>
 
 function MediaPlayerPlay(props: MediaPlayerPlayProps) {
   const { children, className, disabled, ...playButtonProps } = props;
@@ -1256,7 +1233,7 @@ function MediaPlayerPlay(props: MediaPlayerPlayProps) {
   const dispatch = useMediaDispatch();
   const mediaPaused = useMediaSelector((state) => state.mediaPaused ?? true);
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onPlayToggle = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1270,7 +1247,7 @@ function MediaPlayerPlay(props: MediaPlayerPlayProps) {
           : MediaActionTypes.MEDIA_PAUSE_REQUEST,
       });
     },
-    [dispatch, props.onClick, mediaPaused],
+    [props, dispatch, mediaPaused],
   );
 
   return (
@@ -1322,7 +1299,7 @@ function MediaPlayerSeekBackward(props: MediaPlayerSeekBackwardProps) {
     (state) => state.mediaCurrentTime ?? 0,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onSeekBackward = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1335,7 +1312,7 @@ function MediaPlayerSeekBackward(props: MediaPlayerSeekBackwardProps) {
         detail: Math.max(0, mediaCurrentTime - seconds),
       });
     },
-    [dispatch, props.onClick, mediaCurrentTime, seconds],
+    [props, dispatch, mediaCurrentTime, seconds],
   );
 
   return (
@@ -1384,7 +1361,7 @@ function MediaPlayerSeekForward(props: MediaPlayerSeekForwardProps) {
   const [, seekableEnd] = useMediaSelector(
     (state) => state.mediaSeekable ?? [0, 0],
   );
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onSeekForward = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1400,7 +1377,7 @@ function MediaPlayerSeekForward(props: MediaPlayerSeekForwardProps) {
         ),
       });
     },
-    [dispatch, props.onClick, mediaCurrentTime, seekableEnd, seconds],
+    [props, dispatch, seekableEnd, mediaCurrentTime, seconds],
   );
 
   return (
@@ -1519,7 +1496,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
 
   const displayValue = seekState.pendingSeekTime ?? mediaCurrentTime;
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
   const tooltipDisabled =
     withoutTooltip || context.withoutTooltip || store.getState().menuOpen;
 
@@ -1531,7 +1508,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
     const key = roundedTime + duration * 10000;
 
     if (timeCache.current.has(key)) {
-      return timeCache.current.get(key) as string;
+      return timeCache.current.get(key)!;
     }
 
     const formatted = timeUtils.formatTime(time, duration);
@@ -1937,7 +1914,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
         seekThrottleRef.current = null;
       });
     },
-    [dispatch, store.getState, store.setState],
+    [dispatch, store],
   );
 
   const onSeekCommit = React.useCallback(
@@ -1992,7 +1969,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
         detail: undefined,
       });
     },
-    [dispatch, store.getState, store.setState],
+    [dispatch, store],
   );
 
   React.useEffect(() => {
@@ -2153,7 +2130,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
                       <div style={spriteStyle} />
                     ) : (
                       // biome-ignore lint/performance/noImgElement: dynamic thumbnail URLs from media don't work well with Next.js Image optimization
-                      <img
+                      <Image
                         src={thumbnail.src}
                         alt={`Preview at ${hoverTime}`}
                         className="size-full object-cover"
@@ -2174,7 +2151,7 @@ function MediaPlayerSeek(props: MediaPlayerSeekProps) {
                   className={cn(
                     "whitespace-nowrap text-center text-xs tabular-nums",
                     thumbnail && "pb-1.5",
-                    !(thumbnail || currentChapterCue) && "px-2.5 py-1",
+                    !(thumbnail ?? currentChapterCue) && "px-2.5 py-1",
                   )}
                 >
                   {tooltipTimeVariant === "progress"
@@ -2222,7 +2199,7 @@ function MediaPlayerVolume(props: MediaPlayerVolumeProps) {
   const sliderId = React.useId();
   const volumeTriggerId = React.useId();
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onMute = React.useCallback(() => {
     dispatch({
@@ -2245,7 +2222,7 @@ function MediaPlayerVolume(props: MediaPlayerVolumeProps) {
         detail: volume,
       });
     },
-    [dispatch, store.getState, store.setState],
+    [dispatch, store],
   );
 
   const onVolumeCommit = React.useCallback(
@@ -2435,7 +2412,7 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
     (state) => state.mediaPlaybackRate ?? 1,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onPlaybackRateChange = React.useCallback(
     (rate: number) => {
@@ -2452,7 +2429,7 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
       store.setState("menuOpen", open);
       onOpenChangeProp?.(open);
     },
-    [store.setState, onOpenChangeProp],
+    [store, onOpenChangeProp],
   );
 
   return (
@@ -2500,13 +2477,13 @@ function MediaPlayerPlaybackSpeed(props: MediaPlayerPlaybackSpeedProps) {
   );
 }
 
-interface MediaPlayerLoopProps extends React.ComponentProps<typeof Button> {}
+type MediaPlayerLoopProps = React.ComponentProps<typeof Button>
 
 function MediaPlayerLoop(props: MediaPlayerLoopProps) {
   const { children, className, disabled, ...loopProps } = props;
 
   const context = useMediaPlayerContext("MediaPlayerLoop");
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const [isLooping, setIsLooping] = React.useState(() => {
     const mediaElement = context.mediaRef.current;
@@ -2541,7 +2518,7 @@ function MediaPlayerLoop(props: MediaPlayerLoopProps) {
         setIsLooping(newLoopState);
       }
     },
-    [context.mediaRef, props.onClick],
+    [context.mediaRef, props],
   );
 
   return (
@@ -2575,8 +2552,7 @@ function MediaPlayerLoop(props: MediaPlayerLoopProps) {
   );
 }
 
-interface MediaPlayerFullscreenProps
-  extends React.ComponentProps<typeof Button> {}
+type MediaPlayerFullscreenProps = React.ComponentProps<typeof Button>
 
 function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
   const { children, className, disabled, ...fullscreenProps } = props;
@@ -2587,7 +2563,7 @@ function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
     (state) => state.mediaIsFullscreen ?? false,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onFullscreen = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -2601,7 +2577,7 @@ function MediaPlayerFullscreen(props: MediaPlayerFullscreenProps) {
           : MediaActionTypes.MEDIA_ENTER_FULLSCREEN_REQUEST,
       });
     },
-    [dispatch, props.onClick, isFullscreen],
+    [props, dispatch, isFullscreen],
   );
 
   return (
@@ -2643,7 +2619,7 @@ function MediaPlayerPiP(props: MediaPlayerPiPProps) {
     (state) => state.mediaIsPip ?? false,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onPictureInPicture = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -2671,7 +2647,7 @@ function MediaPlayerPiP(props: MediaPlayerPiPProps) {
         }
       }
     },
-    [dispatch, props.onClick, isPictureInPicture, onPipError, context.mediaRef],
+    [props, dispatch, isPictureInPicture, context.mediaRef, onPipError],
   );
 
   return (
@@ -2703,8 +2679,7 @@ function MediaPlayerPiP(props: MediaPlayerPiPProps) {
   );
 }
 
-interface MediaPlayerCaptionsProps
-  extends React.ComponentProps<typeof Button> {}
+type MediaPlayerCaptionsProps = React.ComponentProps<typeof Button>
 
 function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
   const { children, className, disabled, ...captionsProps } = props;
@@ -2715,7 +2690,7 @@ function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
     (state) => (state.mediaSubtitlesShowing ?? []).length > 0,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
   const onCaptionsToggle = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
       props.onClick?.(event);
@@ -2726,7 +2701,7 @@ function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
         type: MediaActionTypes.MEDIA_TOGGLE_SUBTITLES_REQUEST,
       });
     },
-    [dispatch, props.onClick],
+    [dispatch, props],
   );
 
   return (
@@ -2753,15 +2728,14 @@ function MediaPlayerCaptions(props: MediaPlayerCaptionsProps) {
   );
 }
 
-interface MediaPlayerDownloadProps
-  extends React.ComponentProps<typeof Button> {}
+type MediaPlayerDownloadProps = React.ComponentProps<typeof Button>
 
 function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
   const { children, className, disabled, ...downloadProps } = props;
 
   const context = useMediaPlayerContext("MediaPlayerDownload");
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
 
   const onDownload = React.useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -2771,7 +2745,7 @@ function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
 
       const mediaElement = context.mediaRef.current;
 
-      if (!mediaElement || !mediaElement.currentSrc) return;
+      if (!mediaElement?.currentSrc) return;
 
       const link = document.createElement("a");
       link.href = mediaElement.currentSrc;
@@ -2780,7 +2754,7 @@ function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
       link.click();
       document.body.removeChild(link);
     },
-    [context.mediaRef, props.onClick],
+    [context.mediaRef, props],
   );
 
   return (
@@ -2804,7 +2778,7 @@ function MediaPlayerDownload(props: MediaPlayerDownloadProps) {
   );
 }
 
-interface MediaPlayerSettingsProps extends MediaPlayerPlaybackSpeedProps {}
+type MediaPlayerSettingsProps = MediaPlayerPlaybackSpeedProps
 
 function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
   const {
@@ -2839,7 +2813,7 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
     (state) => state.mediaRenditionSelected,
   );
 
-  const isDisabled = disabled || context.disabled;
+  const isDisabled = disabled ?? context.disabled;
   const isSubtitlesActive = mediaSubtitlesShowing.length > 0;
 
   const onPlaybackRateChange = React.useCallback(
@@ -2909,7 +2883,7 @@ function MediaPlayerSettings(props: MediaPlayerSettingsProps) {
       store.setState("menuOpen", open);
       onOpenChangeProp?.(open);
     },
-    [store.setState, onOpenChangeProp],
+    [store, onOpenChangeProp],
   );
 
   return (

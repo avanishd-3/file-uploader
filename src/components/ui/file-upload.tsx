@@ -11,6 +11,7 @@ import {
   FileTextIcon,
   FileVideoIcon,
 } from "lucide-react";
+import Image from "next/image";
 import * as React from "react";
 
 const ROOT_NAME = "FileUpload";
@@ -27,9 +28,7 @@ const CLEAR_NAME = "FileUploadClear";
 function useLazyRef<T>(fn: () => T) {
   const ref = React.useRef<T | null>(null);
 
-  if (ref.current === null) {
-    ref.current = fn();
-  }
+  ref.current ??= fn();
 
   return ref as React.RefObject<T>;
 }
@@ -483,25 +482,12 @@ function FileUploadRoot(props: FileUploadRootProps) {
 
         if (onUpload) {
           requestAnimationFrame(() => {
-            onFilesUpload(acceptedFiles);
+            void onFilesUpload(acceptedFiles);
           });
         }
       }
     },
-    [
-      store,
-      isControlled,
-      onValueChange,
-      onAccept,
-      onFileAccept,
-      onUpload,
-      maxFiles,
-      onFileValidate,
-      onFileReject,
-      acceptTypes,
-      maxSize,
-      disabled,
-    ],
+    [disabled, maxFiles, store, onFileValidate, onFileReject, acceptTypes, maxSize, isControlled, onValueChange, onAccept, onUpload, onFileAccept],
   );
 
   const onFilesUpload = React.useCallback(
@@ -776,8 +762,6 @@ function FileUploadDropzone(props: FileUploadDropzoneProps) {
       role="region"
       id={context.dropzoneId}
       aria-controls={`${context.inputId} ${context.listId}`}
-      aria-disabled={context.disabled}
-      aria-invalid={invalid}
       data-disabled={context.disabled ? "" : undefined}
       data-dragging={dragOver ? "" : undefined}
       data-invalid={invalid ? "" : undefined}
@@ -862,7 +846,6 @@ function FileUploadList(props: FileUploadListProps) {
     <ListPrimitive
       role="list"
       id={context.listId}
-      aria-orientation={orientation}
       data-orientation={orientation}
       data-slot="file-upload-list"
       data-state={shouldRender ? "active" : "inactive"}
@@ -1056,7 +1039,7 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
           urlCache.set(file, url);
         }
         return (
-          <img
+          <Image
             src={url}
             alt={file.name}
             className="size-full object-cover"

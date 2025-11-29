@@ -124,7 +124,7 @@ export async function moveFile(
     let incrementPromise: PgRaw<RowList<Record<string, unknown>[]>> | undefined;
 
     // Decrement ancestor item counts
-    if (currentFile !== undefined && currentFile.parentId !== null) {
+    if (currentFile?.parentId !== null && currentFile !== undefined) {
         decrementPromise = db.execute(getDecrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
@@ -179,7 +179,7 @@ export async function deleteFile(fileId: string) {
         columns: { parentId: true, url: true },
     });
 
-    if (currentFile !== undefined && currentFile.parentId !== null) {
+    if (currentFile?.parentId !== null && currentFile !== undefined) {
         await db.execute(getDecrementAncestorItemsByOneQuery(currentFile.parentId));
     }
 
@@ -187,7 +187,7 @@ export async function deleteFile(fileId: string) {
     if (currentFile) {
         const publicDir = path.join(process.cwd(), 'public'); 
         const filePath = path.join(publicDir, currentFile.url);
-        unlink(filePath, (err) => {
+        unlink(filePath, (_err) => {
             // Ignore errors for now
             // TODO: Handle errors properly
         });
