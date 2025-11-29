@@ -297,7 +297,7 @@ export default function FileManager(
   }
 
   // Handle bulk actions
-  const handleBulkAction = (action: string) : void | Promise<void> => {
+  const handleBulkAction = async (action: string) : Promise<void | Promise<void>> => {
     switch (action) {
       case "delete":
         setDeleteModalOpen(true)
@@ -307,14 +307,17 @@ export default function FileManager(
         break
       case "download":
         // Download each selected file
-        selectedFiles.forEach(async (fileId) => {
+        const to_downloadPromises: Promise<void>[] = []
+        selectedFiles.forEach((fileId) => {
           const file = filesandFolders.find((f) => f.id === fileId)
           if (file) {
             console.log(`Downloading file: ${file.name}`)
-            await downloadClient(file)
+            to_downloadPromises.push(downloadClient(file))
           }
         })
-        break
+
+        // Batch download to avoid blocking UI
+        await Promise.all(to_downloadPromises)
       default:
         break
     }
