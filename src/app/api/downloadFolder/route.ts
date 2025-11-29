@@ -4,6 +4,7 @@ import jszip from 'jszip';
 
 import { NextResponse } from 'next/server';
 import { getFilesByParentNameAction } from '@/lib/actions/file-actions';
+import { convertNodeReadStreamToWebStream } from '@/lib/utils/server-utils';
 
 export const dynamic = 'force-dynamic'; // Disable static generation for this route
 
@@ -49,19 +50,7 @@ export async function GET(req: Request) {
     const nodeStream = zip.generateNodeStream({ type: 'nodebuffer', streamFiles: true });
 
     // Convert Node.js stream to web ReadableStream
-    const webStream = new ReadableStream({
-        start(controller) {
-            nodeStream.on('data', (chunk) => {
-                controller.enqueue(chunk);
-            });
-            nodeStream.on('end', () => {
-                controller.close();
-            });
-            nodeStream.on('error', (err) => {
-                controller.error(err);
-            });
-        }
-    });
+    const webStream = convertNodeReadStreamToWebStream(nodeStream);
 
     console.log(`Downloading folder: ${folderPath}`);
 

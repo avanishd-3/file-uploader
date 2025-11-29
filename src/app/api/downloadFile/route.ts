@@ -3,6 +3,7 @@ import path from 'path';
 import fsPromises from 'fs/promises';
 
 import { NextResponse } from 'next/server';
+import { convertNodeReadStreamToWebStream } from '@/lib/utils/server-utils';
 
 export const dynamic = 'force-dynamic'; // Disable static generation for this route
 
@@ -59,43 +60,16 @@ export async function GET(req: Request) {
     }
 
     // Stream file to client
-    const stream: ReadableStream = streamFile(absolutePath);
-    return new Response(stream, {
+    const nodeStream: fs.ReadStream = fs.createReadStream(absolutePath);
+
+    // Convert Node.js stream to web ReadableStream
+    const webStream = convertNodeReadStreamToWebStream(nodeStream);
+    return new Response(webStream, {
         status: 200,
         headers: new Headers({
             "content-disposition": `attachment; filename="${path.basename(absolutePath)}"`,
             "content-type": contentType,
             "content-length": stats.size.toString(),
         }),
-    });
-}
-
-// Node.js specific implementation below
-// See: https://www.ericburel.tech/blog/nextjs-stream-files
-
-// This is to convert Node.js ReadStream to Web platform ReadableStream
-export function streamFile(filePath: string) : ReadableStream {
-    const nodeStream = fs.createReadStream(filePath);
-    const data: ReadableStream = iteratorToStream(nodeStreamtoIterator(nodeStream));
-    return data;
-}
-
-async function* nodeStreamtoIterator(stream: fs.ReadStream) {
-    for await (const chunk of stream) { // Read file 1 chunk at a time
-        yield new Uint8Array(chunk); 
-    }
-}
-
-
-function iteratorToStream(iterator: AsyncGenerator<Uint8Array>) {
-    return new ReadableStream({
-        async pull(controller) {
-            const { value, done } = await iterator.next();
-            if (done) {
-                controller.close();
-            } else {
-                controller.enqueue(value);
-            }
-        }
     });
 }
