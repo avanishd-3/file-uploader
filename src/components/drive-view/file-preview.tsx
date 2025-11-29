@@ -150,9 +150,9 @@ export function FilePreview({  previewModalOpen,
             ): activeFile?.type === "video" ? (
               <>
               {!fileExists ? (
-                // Fallback audio icon
+                // Fallback video icon
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
-                  <AudioIcon size="lg" />
+                  <VideoIcon size="lg" />
                 </div>
               ) :
               // See: https://www.diceui.com/docs/components/media-player#installation
