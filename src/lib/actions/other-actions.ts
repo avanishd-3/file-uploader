@@ -65,8 +65,18 @@ export async function checkFileExistsAction(url: string): Promise<boolean> {
     }
 } 
 
-export async function readFileContentAction(filePath: string): Promise<string> {
+// Should not throw error over network boundary, just return empty string
+// Empty string is fine b/c we don't need a special UI on fail
+export async function readFileContentAction(filePath: string | undefined): Promise<string> {
     // Read file content from Node.js server
+
+    // Don't allow invalid file paths
+    // Prevent relative paths
+    if (filePath === undefined || filePath === "" || !filePath.startsWith('/')) {
+        console.error("Invalid file path provided:", filePath);
+        return "";
+    }
+
     const publicDir = path.join(process.cwd(), 'public'); 
     const fullPath = path.join(publicDir, filePath);
 
@@ -76,6 +86,6 @@ export async function readFileContentAction(filePath: string): Promise<string> {
         return content;
     } catch (error) {
         console.error("Error reading file:", error);
-        throw error;
+        return "";
     }
 }

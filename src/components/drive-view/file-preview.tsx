@@ -43,7 +43,7 @@ export function FilePreview({  previewModalOpen,
       if (activeFile !== null) { // Need this fo TS
         console.log("Fetching code for file:", activeFile.name);
         const result = await readFileContentAction((activeFile as FileItem).url);
-        setCodeText(result);
+        setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
         console.log("Fetched code content:", result);
       }
       
