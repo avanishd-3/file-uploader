@@ -54,7 +54,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useComposedRefs } from "@/lib/compose-refs";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 const ROOT_NAME = "MediaPlayer";
 const SEEK_NAME = "MediaPlayerSeek";

@@ -20,7 +20,7 @@ import type { FileorFolderItem } from "../lib/file";
 import type { Dispatch, SetStateAction } from "react";
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions";
 import { createFileAction } from "@/lib/actions/file-actions";
-import { getFileType, convertFileSize } from "@/lib/utils";
+import { getFileType, convertFileSize } from "@/lib/utils/utils";
 
 export const FileUploadBox = ({
   setCurrFiles,

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 import { Slot } from "@radix-ui/react-slot";
 import {
   FileArchiveIcon,

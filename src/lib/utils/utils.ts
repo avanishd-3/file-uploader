@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format } from "date-fns"
-import type { FileItem, FileType } from "@/lib/file"
+import type { FileType } from "@/lib/file"
 
 /* These utils can be used on both client and server */
 

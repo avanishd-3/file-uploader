@@ -16,7 +16,7 @@ import {
 import * as SliderPrimitive from "@radix-ui/react-slider"
 import { Check, PauseIcon, PlayIcon, Settings } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/utils"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

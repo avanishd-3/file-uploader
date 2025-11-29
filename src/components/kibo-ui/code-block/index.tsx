@@ -106,7 +106,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils/utils";
 
 export type { BundledLanguage } from "shiki";
 
@@ -389,7 +389,6 @@ export type CodeBlockFilenameProps = HTMLAttributes<HTMLDivElement> & {
 };
 
 export const CodeBlockFilename = ({
-  className,
   icon,
   value,
   children,
@@ -501,7 +500,7 @@ export const CodeBlockCopyButton = ({
       return;
     }
 
-    navigator.clipboard.writeText(code).then(() => {
+    void navigator.clipboard.writeText(code).then(() => {
       setIsCopied(true);
       onCopy?.();
 

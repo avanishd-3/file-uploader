@@ -41,7 +41,7 @@ import { TableList } from "./table-list"
 import type { FileorFolderItem, FileorFolderType, FolderItem } from "../../lib/file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
-import { formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils/utils"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
