@@ -47,13 +47,22 @@ export const getFileType = (fileName: string): FileType => {
     case "jpg":
     case "jpeg":
     case "png":
+    case "apng":
+    case "svg":
     case "gif":
+    case "avif":
     case "webp":
+    case "tiff":
+    case "tif":
+    case "woff":
+    case "woff2":
+    case "ico":
 
       return "image";
 
     // Code types
     case "html":
+    case "xhtml":
     case "css":
     case "js":
     case "ts":
@@ -64,6 +73,13 @@ export const getFileType = (fileName: string): FileType => {
     case "h":
     case "cpp":
     case "hpp":
+    case "java":
+    case "rb":
+    case "go":
+    case "rs":
+    case "php":
+    case "swift":
+    case "sh":
     case "json":
     case "xml":
     case "yaml":
@@ -73,16 +89,21 @@ export const getFileType = (fileName: string): FileType => {
       return "code";
 
     // Audio types
+    case "aac":
     case "mp3":
+    case "oga":
     case "wav":
     case "ogg":
     case "flac":
     case "m4a":
+    case "weba":
 
       return "audio";
 
     // Video types
     case "mp4":
+    case "mpeg":
+    case "ogv":
     case "mov":
     case "avi":
     case "mkv":
