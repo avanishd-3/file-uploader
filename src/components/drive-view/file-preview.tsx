@@ -77,7 +77,7 @@ export function FilePreview({  previewModalOpen,
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[95vh] md:min-h-[60vh]">
+          <DialogContent className="sm:max-w-[600px] md:max-w-[100vh] md:min-h-[60vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 {getFileIcon(activeFile?.type ?? "other")}
@@ -127,7 +127,7 @@ export function FilePreview({  previewModalOpen,
                 </div>
               ) : 
               // See: https://www.diceui.com/docs/components/media-player#audio-player
-              <MediaPlayer className="h-20">
+              <MediaPlayer>
                 <MediaPlayerAudio className="sr-only">
                   <source src={activeFileUrl} type="audio/mp3" />
                 </MediaPlayerAudio>
