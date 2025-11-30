@@ -41,7 +41,7 @@ import { TableList } from "./table-list"
 import type { FileorFolderItem, FileorFolderType, FolderItem } from "../../lib/file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
-import { formatDate } from "@/lib/utils/utils"
+import { formatDate, handleFileUpload } from "@/lib/utils/utils"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
@@ -191,6 +191,7 @@ export default function FileManager(
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [searchQuery, setSearchQuery] = useState("")
+  const [, setIsDragging] = useState(false)
 
   // Modals state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -210,6 +211,30 @@ export default function FileManager(
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
   const [newFileName, setNewFileName] = useState("")
+
+  // Handle drag and drop from computer to file manager
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    // Handle file upload directly
+    const files = e.dataTransfer.files
+    if (files.length > 0) {
+      await handleFileUpload(Array.from(files), () => {return}, () => {return}, currentParentId, () => {return}, setFilesandFolders);
+    }
+  };
   
   // Filter files based on current parentId and search query
 
@@ -464,7 +489,11 @@ export default function FileManager(
   }
 
   return (
-    <Card className="w-full max-w-6xl mx-auto shadow-md">
+    // Card should have drop handlers to maximize drop area
+    <Card className="w-full max-w-6xl mx-auto shadow-md"
+     onDragOver={handleDragOver}
+     onDragLeave={handleDragLeave}
+     onDrop={handleDrop}>
       <CardHeader className="p-4 border-b">
         
         <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">

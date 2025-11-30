@@ -18,9 +18,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import type { FileorFolderItem } from "../lib/file";
 import type { Dispatch, SetStateAction } from "react";
-import { getFilesandFoldersAction } from "@/lib/actions/other-actions";
-import { createFileAction } from "@/lib/actions/file-actions";
-import { getFileType, convertFileSize } from "@/lib/utils/utils";
+import { handleFileUpload } from "@/lib/utils/utils";
 
 export const FileUploadBox = ({
   setCurrFiles,
@@ -35,81 +33,7 @@ export const FileUploadBox = ({
  
   const onUpload: NonNullable<FileUploadProps["onUpload"]> = React.useCallback(
     async (files, { onProgress, onSuccess, onError }) => {
-      try {
-        // Process each file individually
-        const uploadPromises = files.map(async (file) => {
-          try {
-            const formData = new FormData();
-            formData.append("file", file);
-
-            // Use XMLHttpRequest for progress events
-            await new Promise<void>((resolve, reject) => {
-              const xhr = new XMLHttpRequest();
-              xhr.open("POST", "/api/upload");
-
-              xhr.upload.onprogress = (event) => {
-                if (event.lengthComputable) {
-                  const progress = (event.loaded / event.total) * 100;
-                  onProgress(file, progress);
-                }
-              };
-
-              xhr.onload = async () => {
-                if (xhr.status === 200) {
-                  onSuccess(file);
-                  
-                  await createFileAction(
-                    file.name,
-                    getFileType(file.name),
-                    convertFileSize(file.size),
-                    new Date(),
-                    currParentId,
-                    // TODO -> Switch to using file URL from server response
-                    `/uploads/${file.name}`, // Assumes file is saved in the public/uploads directory
-                  )
-
-                  resolve();
-
-                } else {
-                  onError(file, new Error(xhr.responseText || "Upload failed"));
-                  reject(new Error(xhr.responseText || "Upload failed"));
-                }
-              };
-
-              xhr.onerror = () => {
-                onError(file, new Error("Network error"));
-                reject(new Error("Network error"));
-              };
-
-              xhr.send(formData);
-            });
-          } catch (error) {
-            onError(
-              file,
-              error instanceof Error ? error : new Error("Upload failed"),
-            );
-          }
-        });
-
-        // Wait for all uploads to complete
-        await Promise.all(uploadPromises);
-
-         // Show success message after all uploads are done
-        toast.success("File uploaded successfully!");
-
-        // Update file list by fetching new list from server
-        const newFiles = await getFilesandFoldersAction(currParentId);
-
-        // Replace previous files with new ones
-        // This ensures that the UI reflects the latest state of files
-        // and folders in the current directory
-        setCurrFiles(() => newFiles);
-
-       
-      } catch (error) {
-        // This handles any error that might occur outside the individual upload processes
-        console.error("Unexpected error during upload:", error);
-      }
+      await handleFileUpload(files, onProgress, onSuccess, currParentId, onError, setCurrFiles);
     },
     [currParentId, setCurrFiles],
   );
