@@ -37,19 +37,18 @@ export function FilePreview({  previewModalOpen,
 
   // Destruct into array of JSON for code block
   const [codeText, setCodeText] = useState("");
-  const activeFileIsCode = activeFile !== null && activeFile.type === "code"; // So effect doesn't run for non-code files
   useEffect(() => {
     const getCode = async () => {
-      if (activeFile !== null) { // Need this fo TS
+      if (activeFile !== null && activeFile.type === "code") { // Technically extra effect runs but we need to check when activeFile changes
         console.log("Fetching code for file:", activeFile.name);
-        const result = await readFileContentAction((activeFile as FileItem).url);
+        const result = await readFileContentAction((activeFile).url);
         setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
         console.log("Fetched code content:", result);
       }
       
     };
     void getCode();
-  }, [activeFile, activeFileIsCode]);
+  }, [activeFile]);
   
   if (activeFile?.type === "code") {
     console.log("Code text:", codeText);
