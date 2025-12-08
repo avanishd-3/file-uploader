@@ -70,7 +70,7 @@ interface AudioPlayerApi<TData = unknown> {
   isItemActive: (id: string | number | null) => boolean
   setActiveItem: (item: AudioPlayerItem<TData> | null) => Promise<void>
   play: (item?: AudioPlayerItem<TData> | null) => Promise<void>
-  pause: () => void
+  pause: () => Promise<void>
   seek: (time: number) => void
   setPlaybackRate: (rate: number) => void
 }
@@ -107,8 +107,8 @@ export function AudioPlayerProvider<TData = unknown>({
   const audioRef = useRef<HTMLAudioElement>(null)
   const itemRef = useRef<AudioPlayerItem<TData> | null>(null)
   const playPromiseRef = useRef<Promise<void> | null>(null)
-  const [readyState, setReadyState] = useState<number>(0)
-  const [networkState, setNetworkState] = useState<number>(0)
+  const [readyState, setReadyState] = useState<ReadyState>(0)
+  const [networkState, setNetworkState] = useState<NetworkState>(0)
   const [time, setTime] = useState<number>(0)
   const [duration, setDuration] = useState<number | undefined>(undefined)
   const [error, setError] = useState<MediaError | null>(null)
@@ -298,9 +298,9 @@ export const AudioPlayerProgress = ({
       min={0}
       max={player.duration ?? 0}
       step={otherProps.step ?? 0.25}
-      onPointerDown={(e) => {
+      onPointerDown={async (e) => {
         wasPlayingRef.current = player.isPlaying
-        player.pause()
+        await player.pause()
         otherProps.onPointerDown?.(e)
       }}
       onPointerUp={async (e) => {
@@ -319,7 +319,7 @@ export const AudioPlayerProgress = ({
           if (!player.isPlaying) {
             await player.play()
           } else {
-            player.pause()
+            await player.pause()
           }
         }
         otherProps.onKeyDown?.(e)
@@ -461,7 +461,7 @@ export function AudioPlayerButton<TData = unknown>({
           if (shouldPlay) {
             await player.play()
           } else {
-            player.pause()
+            await player.pause()
           }
         }}
         loading={player.isBuffering && player.isPlaying}
@@ -477,7 +477,7 @@ export function AudioPlayerButton<TData = unknown>({
         if (shouldPlay) {
           await player.play(item)
         } else {
-          player.pause()
+          await player.pause()
         }
       }}
       loading={

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-base-to-string */
 "use client";
 
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
