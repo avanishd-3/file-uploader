@@ -1,12 +1,8 @@
 import DriveUI from "@/components/drive-page";
 
 
-export default async function DrivePage({ params }: { params: { folderId?: string } }) {
-    // Params are async in Next 15, so we need to await them
-    // https://nextjs.org/docs/messages/sync-dynamic-apis
-    
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    const { folderId } = await params;
+export default async function DrivePage({ params }: { params: Promise<{ folderId?: string }> }) {
+    const folderId = (await params).folderId;
     const parentId = folderId ?? null;
 
     // Use Drive Page to render file manager (so can duplicate for /drive)
