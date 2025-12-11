@@ -194,7 +194,7 @@ export function FilePreview({  previewModalOpen,
                 
               </div>
             ) : activeFile?.type === "code" ? (
-              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+              <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback file icon
                   <>
