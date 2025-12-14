@@ -21,7 +21,7 @@ import { toast } from "sonner"
 import { usePapaParse } from "react-papaparse";
 
 import { type ColumnDef } from "@tanstack/react-table"
-import { DataTable } from "../ui/data-table"
+import { DataTable } from "../data-table/data-table"
 
 /**
  * Note: If an iframe fails to render something that exists, it will download it instead.
@@ -84,10 +84,11 @@ export function FilePreview({  previewModalOpen,
             rows.push(row.data);
           },
           complete: () => {
-            const data = rows.slice(1); // JS version of rows[1:]
-            setCsvData(data);
             console.log("CSV parsing complete:", rows.length, "rows parsed.");
 
+            const data = rows.slice(1); // JS version of rows[1:]
+            setCsvData(data);
+            
             // Add column headers for data table
             // See: https://ui.shadcn.com/docs/components/data-table#column-definitions
 
@@ -301,7 +302,7 @@ export function FilePreview({  previewModalOpen,
                 )}
                 
               </div> ) : activeFile?.type === "sheet" ? (
-                <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
                   {activeFile.url.split('.').pop() === "csv" && !csvParseError ? (
                   // Use table for CSV preview
                   // See: https://ui.shadcn.com/docs/components/data-table#render-the-table
