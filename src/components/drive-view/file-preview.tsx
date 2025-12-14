@@ -20,7 +20,13 @@ import { toast } from "sonner"
 
 import { usePapaParse } from "react-papaparse";
 
-// Note: If an iframe fails to render something that exists, it will download it instead.
+import { type ColumnDef } from "@tanstack/react-table"
+import { DataTable } from "../ui/data-table"
+
+/**
+ * Note: If an iframe fails to render something that exists, it will download it instead.
+ * Note: The eslint disables are all b/c this parses arbirtrary CSVs, so any needs to be used a lot
+ */
 export function FilePreview({  previewModalOpen,
   setPreviewModalOpen, activeFile, formatDate, getFileIcon } : {
   previewModalOpen: boolean,
@@ -39,8 +45,11 @@ export function FilePreview({  previewModalOpen,
   // 1 use effect for multi-type file fetching to prevent excessive re-renders
   const [codeText, setCodeText] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [, setCsvData] = useState<any[]>([]);
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [csvParseError, setCsvParseError] = useState<boolean>(false);
   const { readRemoteFile } = usePapaParse();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [csvTableColumns, setCsvTableColumns] = useState<ColumnDef<any>[]>([]); // Columns for CSV data table
 
   useEffect(() => {
     // Destruct into array of JSON for code block
@@ -75,12 +84,28 @@ export function FilePreview({  previewModalOpen,
             rows.push(row.data);
           },
           complete: () => {
-            setCsvData(rows);
+            const data = rows.slice(1); // JS version of rows[1:]
+            setCsvData(data);
             console.log("CSV parsing complete:", rows.length, "rows parsed.");
+
+            // Add column headers for data table
+            // See: https://ui.shadcn.com/docs/components/data-table#column-definitions
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+            const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const columns: ColumnDef<any>[] = headers.map((header) => ({
+              accessorKey: header,
+              header: header.charAt(0).toUpperCase() + header.slice(1),
+            }));
+
+            setCsvTableColumns(columns);
+            console.log("CSV table columns set:", columns);
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           error: (error: any) => {
             console.error("Error parsing CSV file:", error);
+            setCsvParseError(true);
           }
         });
       }
@@ -276,9 +301,15 @@ export function FilePreview({  previewModalOpen,
                 )}
                 
               </div> ) : activeFile?.type === "sheet" ? (
-                // Parse CSV files for preview
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
-                  <SheetIcon size="lg" />
+                  {activeFile.url.split('.').pop() === "csv" && !csvParseError ? (
+                  // Use table for CSV preview
+                  // See: https://ui.shadcn.com/docs/components/data-table#render-the-table
+                  <DataTable columns={csvTableColumns} data={csvData} />
+                  ) : (
+                    // Fallback sheet icon
+                    <SheetIcon size="lg" />
+                  )}
                 </div>
                 ) : (
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
