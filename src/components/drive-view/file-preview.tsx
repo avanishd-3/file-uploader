@@ -18,6 +18,7 @@ import { checkFileExistsAction, readFileContentAction } from "@/lib/actions/othe
 import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
 import { toast } from "sonner"
 
+import { usePapaParse } from "react-papaparse";
 
 // Note: If an iframe fails to render something that exists, it will download it instead.
 export function FilePreview({  previewModalOpen,
@@ -35,20 +36,58 @@ export function FilePreview({  previewModalOpen,
   // Code block data for code files
   let code: CodeBlockData[] = [];
 
-  // Destruct into array of JSON for code block
+  // 1 use effect for multi-type file fetching to prevent excessive re-renders
   const [codeText, setCodeText] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [, setCsvData] = useState<any[]>([]);
+  const { readRemoteFile } = usePapaParse();
+
   useEffect(() => {
-    const getCode = async () => {
+    // Destruct into array of JSON for code block
+    const getData = async () => {
       if (activeFile !== null && activeFile.type === "code") { // Technically extra effect runs but we need to check when activeFile changes
         console.log("Fetching code for file:", activeFile.name);
         const result = await readFileContentAction((activeFile).url);
         setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
         console.log("Fetched code content:", result);
       }
+
+      // Parse data if CSV
+      // See: https://www.papaparse.com/docs#local-files
+      else if (activeFile !== null && activeFile.type === "sheet" && activeFile.url.split('.').pop() === "csv") {
+
+        // Stream big file in worker thread
+        console.log("Parsing CSV file:", activeFile.name);
+
+        // Rows need to be any since no schema available
+        // Prevent excess sets by using a local array to accumulate rows
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rows: any[] = [];
+        readRemoteFile(activeFile.url, {
+          download: true,
+          header: true,
+          worker: false, // TODO: See if this can be true when not using public folder for file storage (it must be false for now)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          step: (row: any) => { // Row-by-row callback to not load entire file into memory
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            console.log("Parsed row:", row.data);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            rows.push(row.data);
+          },
+          complete: () => {
+            setCsvData(rows);
+            console.log("CSV parsing complete:", rows.length, "rows parsed.");
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          error: (error: any) => {
+            console.error("Error parsing CSV file:", error);
+          }
+        });
+      }
       
     };
-    void getCode();
-  }, [activeFile]);
+    void getData();
+  }, [activeFile, readRemoteFile]);
   
   if (activeFile?.type === "code") {
     console.log("Code text:", codeText);
@@ -236,9 +275,12 @@ export function FilePreview({  previewModalOpen,
                   </CodeBlock>
                 )}
                 
-              </div> ) : activeFile?.type === "sheet" ? <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+              </div> ) : activeFile?.type === "sheet" ? (
+                // Parse CSV files for preview
+                <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                   <SheetIcon size="lg" />
-                </div>: (
+                </div>
+                ) : (
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                   <GenericFileIcon size="lg" />
                 </div>
