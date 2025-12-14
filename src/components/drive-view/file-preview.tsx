@@ -304,10 +304,14 @@ export function FilePreview({  previewModalOpen,
                 
               </div> ) : activeFile?.type === "sheet" ? (
                 <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
-                  {activeFile.url.split('.').pop() === "csv" && !csvParseError ? (
-                  // Use table for CSV preview
-                  // See: https://ui.shadcn.com/docs/components/data-table#render-the-table
-                  <DataTable columns={csvTableColumns} data={csvData} />
+                  {activeFile.url.split('.').pop() === "csv" && !csvParseError ? ( 
+                  // Use 95% width so there is some padding around the table
+                  // mt-4 is so view button is not at the very top edge
+                  <div className="w-[95%] h-full mt-4 overflow-auto">
+                    {/* Use table for CSV preview */}
+                    {/* See: https://ui.shadcn.com/docs/components/data-table#render-the-table */}
+                    <DataTable columns={csvTableColumns} data={csvData} />
+                  </div>
                   ) : (
                     // Fallback sheet icon
                     <SheetIcon size="lg" />
