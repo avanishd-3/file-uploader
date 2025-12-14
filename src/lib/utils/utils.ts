@@ -111,6 +111,14 @@ export const getFileType = (fileName: string): FileType => {
 
       return "video";
 
+    // Sheet types
+    case "xls":
+    case "xlsx":
+    case "csv":
+    case "ods":
+
+      return "sheet";
+
     // Unable to determine type
     default:
       return "other"; // Default type for unrecognized extensions

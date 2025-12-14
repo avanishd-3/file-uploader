@@ -7,7 +7,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState, type JSX } from "react"
-import { AudioIcon, CodeIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
+import { AudioIcon, CodeIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import type { BundledLanguage } from "@/components/kibo-ui/code-block"
@@ -236,7 +236,9 @@ export function FilePreview({  previewModalOpen,
                   </CodeBlock>
                 )}
                 
-              </div> ) : (
+              </div> ) : activeFile?.type === "sheet" ? <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                  <SheetIcon size="lg" />
+                </div>: (
                 <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                   <GenericFileIcon size="lg" />
                 </div>

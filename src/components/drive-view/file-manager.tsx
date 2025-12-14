@@ -49,7 +49,7 @@ import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
 import { createFolderAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
 import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
-import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
+import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -68,6 +68,8 @@ const getIcon = (type: FileorFolderType) => {
       return <AudioIcon />
     case "video":
       return <VideoIcon />
+    case "sheet":
+      return <SheetIcon />
     default:
       return <GenericFileIcon  />
   }

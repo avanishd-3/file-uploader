@@ -6,7 +6,8 @@ import {
     FileCode,
     FileAudio,
     FileVideo,
-    File
+    File,
+    FileSpreadsheet
 } from "lucide-react";
 
 import { cn } from "@/lib/utils/utils";
@@ -55,6 +56,10 @@ export function AudioIcon({ size }: VariantProps<typeof iconVariants>) {
 
 export function VideoIcon({ size }: VariantProps<typeof iconVariants>) {
     return <FileVideo className={cn(iconVariants({ size }), "text-pink-500")} />;
+}
+
+export function SheetIcon({ size }: VariantProps<typeof iconVariants>) {
+    return <FileSpreadsheet className={cn(iconVariants({ size }), "text-teal-500")} />;
 }
 
 export function GenericFileIcon({ size }: VariantProps<typeof iconVariants>) {
