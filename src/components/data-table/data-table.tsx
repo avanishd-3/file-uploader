@@ -2,9 +2,11 @@
 
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 
@@ -18,6 +20,7 @@ import {
 } from "@/components/ui/table"
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableViewOptions } from "./toggle-column-visibility"
+import { useState } from "react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -28,11 +31,24 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([])
+
+  /**
+   * See: https://ui.shadcn.com/docs/components/data-table#row-actions
+   * No need for column visibility state here as column header component handles it internally
+   *  The header component uses the internal state of the table instance to manage column visibility
+   *  To add persistence, add visibility externally, see: https://ui.shadcn.com/docs/components/data-table#visibility
+   **/
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(), // See: https://ui.shadcn.com/docs/components/data-table#pagination
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
   })
 
   return (

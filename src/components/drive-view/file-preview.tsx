@@ -22,6 +22,7 @@ import { usePapaParse } from "react-papaparse";
 
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "../data-table/data-table"
+import { DataTableColumnHeader } from "../data-table/data-table-column-header"
 
 /**
  * Note: If an iframe fails to render something that exists, it will download it instead.
@@ -97,7 +98,11 @@ export function FilePreview({  previewModalOpen,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const columns: ColumnDef<any>[] = headers.map((header) => ({
               accessorKey: header,
-              header: header.charAt(0).toUpperCase() + header.slice(1),
+              // Make any header sortable and hideable
+              // See: https://ui.shadcn.com/docs/components/data-table#column-header
+              header: ({ column}) => (
+                <DataTableColumnHeader column={column} title={header} />
+              )
             }));
 
             setCsvTableColumns(columns);
