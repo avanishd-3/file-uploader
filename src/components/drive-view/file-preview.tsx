@@ -142,7 +142,7 @@ export function FilePreview({  previewModalOpen,
 
     return (
         <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-          <DialogContent className="sm:max-w-[600px] md:max-w-[100vh] md:min-h-[60vh]">
+          <DialogContent className="sm:max-w-[600px] md:max-w-[70vw] md:min-h-[65vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center">
                 {getFileIcon(activeFile?.type ?? "other")}
@@ -171,7 +171,7 @@ export function FilePreview({  previewModalOpen,
                 )}
               </div>
             ) : activeFile?.type === "pdf" ? (
-              <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+              <div className="w-full h-[70vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback PDF icon
                   <>
@@ -179,6 +179,7 @@ export function FilePreview({  previewModalOpen,
                   </>
                   
                 ) : (
+                  // w-full and h-full to fill parent div
                   <iframe src={activeFile.url} className="w-full h-full"/>
                 )}
                 
@@ -259,7 +260,7 @@ export function FilePreview({  previewModalOpen,
                 
               </div>
             ) : activeFile?.type === "code" ? (
-              <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
+              <div className="w-full h-[70vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback file icon
                   <>
