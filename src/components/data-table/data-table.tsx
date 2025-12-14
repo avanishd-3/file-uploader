@@ -36,6 +36,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
+    // Gap is for spacing between view options and table
     <div className="flex flex-col w-full gap-2">
       {/* Inside own div so CSS can be applied */}
       {/* View options belongs at the top, don't change this */}
@@ -86,9 +87,17 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-        {/* Pagination belongs at the bottom, don't change this */}
-        <DataTablePagination table={table} />
       </div>
+      {/*
+         * Pagination belongs at the bottom, don't change this (also should be outside table border div)
+         * Pagination in a div to apply custom CSS
+         * mt-0.5 is for space between rows and pagination controls (less space looks too cluttered)
+         * Pagination controls look best when centered, unless there is some text on the left (e.g., row select text)
+         */}
+        
+        <div className="mt-0.5 justify-center flex">
+            <DataTablePagination table={table} />
+        </div>
     </div>
   )
 }
