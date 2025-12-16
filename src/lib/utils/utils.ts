@@ -23,6 +23,7 @@ export const formatDate = (date: Date) => {
   } else if (date.toDateString() === yesterday.toDateString()) {
     return "Yesterday"
   } else {
+    // This returns the date according to the user's local time zone
     return format(date, "MMM d, yyyy")
   }
 }
