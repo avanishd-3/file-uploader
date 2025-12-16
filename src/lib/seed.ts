@@ -60,6 +60,7 @@ const sampleFiles: FileItem[] = [
     type: "pdf",
     size: "2.4 MB",
     modified: new Date("2024-01-10"),
+    extension: "pdf",
     parentId: null,
     url: "/uploads/annual_report.pdf", // Example URL, adjust as needed
   },
@@ -69,6 +70,7 @@ const sampleFiles: FileItem[] = [
     type: "pdf",
     size: "3.8 MB",
     modified: new Date("2024-01-05"),
+    extension: "pdf",
     parentId: null,
     url: "/uploads/presentation.pdf", // Example URL, adjust as needed
   },
@@ -78,6 +80,7 @@ const sampleFiles: FileItem[] = [
     type: "image",
     size: "1.2 MB",
     modified: new Date("2023-12-28"),
+    extension: "jpg",
     parentId: null,
     url: "/uploads/profile_picture.jpg", // Example URL, adjust as needed
   },
@@ -87,6 +90,7 @@ const sampleFiles: FileItem[] = [
     type: "document",
     size: "245 KB",
     modified: new Date("2023-12-20"),
+    extension: "docx",
     parentId: null,
     url: "/uploads/meeting_notes.docx", // Example URL, adjust as needed
   },
@@ -96,6 +100,7 @@ const sampleFiles: FileItem[] = [
     type: "code",
     size: "56 KB",
     modified: new Date("2023-12-15"),
+    extension: "js",
     parentId: "1",
     url: "/uploads/main.js", // Example URL, adjust as needed
   },
@@ -121,7 +126,7 @@ export async function seedDatabase() {
     if (existingFiles.length === 0) {
         // Insert sample files
         for (const file of sampleFiles) {
-            createFilesPromise.push(createFile(file.name, file.type, file.size, file.modified, file.parentId, file.url));
+            createFilesPromise.push(createFile(file.name, file.type, file.size, file.modified, file.extension, file.parentId, file.url));
         }
     }
 

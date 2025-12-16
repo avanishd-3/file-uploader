@@ -8,10 +8,11 @@ export async function createFileAction(
     type: FileType,
     size: string,
     createdAt: Date,
+    extension: string,
     parentId: string | null,
     url: string
 ) {
-    return await createFile(name, type, size, createdAt, parentId, url);
+    return await createFile(name, type, size, createdAt, extension, parentId, url);
 }
 
 export async function renameFileAction(fileId: string, newName: string) {

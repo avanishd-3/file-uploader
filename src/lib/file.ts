@@ -14,7 +14,8 @@ export interface FileItem {
   name: string
   type: "pdf" | "image" | "document" | "code" | "audio" | "video" | "sheet" | "other"
   size: string
-  modified: Date
+  modified: Date,
+  extension: string
   parentId: string | null
   url: string // URL to access the file
 }

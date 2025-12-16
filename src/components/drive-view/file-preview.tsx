@@ -64,7 +64,7 @@ export function FilePreview({  previewModalOpen,
 
       // Parse data if CSV
       // See: https://www.papaparse.com/docs#local-files
-      else if (activeFile !== null && activeFile.type === "sheet" && activeFile.url.split('.').pop() === "csv") {
+      else if (activeFile !== null && activeFile.type === "sheet" && activeFile.extension === "csv") {
 
         // Stream big file in worker thread
         console.log("Parsing CSV file:", activeFile.name);
@@ -124,7 +124,7 @@ export function FilePreview({  previewModalOpen,
     console.log("Code text:", codeText);
     code = [
       {
-        language: activeFile.url.split('.').pop()!, // This should never be undefined
+        language: activeFile.extension,
         filename: activeFile.name,
         code: codeText,
       }
@@ -254,7 +254,7 @@ export function FilePreview({  previewModalOpen,
             ): activeFile?.type === "document" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {/* TODO: Add docx preview support. Currently, the fallback is rendered */}
-                {!fileExists || activeFile.url.split('.').pop() === "docx" ? (
+                {!fileExists || activeFile.extension === "docx" ? (
                   // Fallback file icon
                   <>
                     <TextIcon size="lg" />
@@ -309,7 +309,7 @@ export function FilePreview({  previewModalOpen,
                 
               </div> ) : activeFile?.type === "sheet" ? (
                 <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
-                  {activeFile.url.split('.').pop() === "csv" && !csvParseError ? ( 
+                  {activeFile.extension === "csv" && !csvParseError ? ( 
                   // Use 95% width so there is some padding around the table
                   // mt-4 is so view button is not at the very top edge
                   <div className="w-[95%] h-full mt-4 overflow-auto">

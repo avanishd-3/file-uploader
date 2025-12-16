@@ -151,6 +151,7 @@ export async function createFile(
     type: FileType,
     size: string,
     modified: Date,
+    extension: string,
     parentId: string | null,
     url: string,
 ) {
@@ -164,6 +165,7 @@ export async function createFile(
         type,
         size,
         modified,
+        extension,
         parentId,
         url,
     });

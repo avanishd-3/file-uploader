@@ -5,6 +5,7 @@ import type { FileorFolderItem, FileType } from "@/lib/file"
 import { createFileAction } from "../actions/file-actions"
 import { toast } from "sonner"
 import { getFilesandFoldersAction } from "../actions/other-actions"
+import { getFileExtension } from "./client-only-utils"
 
 /* These utils can be used on both client and server */
 
@@ -30,7 +31,7 @@ export const formatDate = (date: Date) => {
 }
 export const getFileType = (fileName: string): FileType => {
   /* This function determines the type of file based on its extension. */
-  const ext = fileName.split(".").pop()?.toLowerCase();
+  const ext = getFileExtension(fileName);
   switch (ext) {
     // Document types
     case "doc":
@@ -162,6 +163,7 @@ export async function handleFileUpload(files: File[], onProgress: (file: File, p
                 getFileType(file.name),
                 convertFileSize(file.size),
                 new Date(),
+                getFileExtension(file.name),
                 currParentId,
                 // TODO -> Switch to using file URL from server response
                 `/uploads/${file.name}`

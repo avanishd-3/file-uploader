@@ -46,6 +46,7 @@ export const file = createTable(
     type: d.varchar({ enum: ["pdf", "image", "document", "code", "audio", "video", "sheet", "other"] }).notNull(),
     size: d.varchar({ length: 64 }).notNull(),
     modified: d.timestamp({ withTimezone: true }).notNull(),
+    extension: d.varchar({ length: 16 }).notNull(),
     parentId: d.uuid().references(() => folder.id, { onDelete: "cascade"}), // onUpdate("cascade") is not useful b/c it only helps when primary key changes (won't happen here)
     url: d.text().notNull()
   }),
