@@ -18,7 +18,7 @@ import * as React from "react";
 import { toast } from "sonner";
 import type { FileorFolderItem } from "../lib/file";
 import type { Dispatch, SetStateAction } from "react";
-import { handleFileUpload } from "@/lib/utils/utils";
+import { handleFileUpload } from "@/lib/utils/file-upload-util"
 
 export const FileUploadBox = ({
   setCurrFiles,
