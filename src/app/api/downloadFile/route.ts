@@ -4,6 +4,7 @@ import fsPromises from 'fs/promises';
 
 import { NextResponse } from 'next/server';
 import { convertNodeReadStreamToWebStream } from '@/lib/utils/server-utils';
+import { getFileExtension, getMimeType } from "@/lib/utils/utils";
 
 export const dynamic = 'force-dynamic'; // Disable static generation for this route
 
@@ -30,34 +31,8 @@ export async function GET(req: Request) {
     }
 
     // Determine the content type based on the file extension
-    const extension = path.extname(absolutePath).toLowerCase();
-    let contentType = 'application/octet-stream'; // Default content type
-
-    switch (extension) {
-        case '.jpg':
-        case '.jpeg':
-            contentType = 'image/jpeg';
-            break;
-        case '.png':
-            contentType = 'image/png';
-            break;
-        case '.gif':
-            contentType = 'image/gif';
-            break;
-        case '.svg':
-            contentType = 'image/svg+xml';
-            break;
-        case '.pdf':
-            contentType = 'application/pdf';
-            break;
-        case '.txt':
-            contentType = 'text/plain';
-            break;
-        case '.html':
-            contentType = 'text/html';
-            break;
-        // Add more cases as needed
-    }
+    const extension = getFileExtension(absolutePath);
+    const mimeType = getMimeType(extension);
 
     // Stream file to client
     const nodeStream: fs.ReadStream = fs.createReadStream(absolutePath);
@@ -68,7 +43,7 @@ export async function GET(req: Request) {
         status: 200,
         headers: new Headers({
             "content-disposition": `attachment; filename="${path.basename(absolutePath)}"`,
-            "content-type": contentType,
+            "content-type": mimeType,
             "content-length": stats.size.toString(),
         }),
     });

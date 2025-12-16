@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { createFileAction } from "../actions/file-actions";
 import { getFilesandFoldersAction } from "../actions/other-actions";
 import type { FileorFolderItem } from "../file";
-import { getFileExtension } from "./client-only-utils";
+import { getFileExtension } from "./utils";
 import { getFileType, convertFileSize } from "./utils";
 
 // This is in its own file b/c it uses server code and having it with the other utils doesn't work w/ Vitest

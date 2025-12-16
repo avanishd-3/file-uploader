@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { format } from "date-fns"
 import type { FileType } from "@/lib/file"
-import { getFileExtension } from "./client-only-utils"
+import mime from "mime"
 
 /* These utils can be used on both client and server */
 
@@ -131,4 +131,42 @@ export const convertFileSize = (size: number): string => {
   else if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
   else if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
   else return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+};
+
+export const getFileExtension = (fileName: string): string => {
+    /***
+     * @param fileName - The name of the file (e.g., "document.pdf")
+     * This function extracts the file extension from a given file name. If the file name does not have a period, it returns an empty string.
+     * This manually handles the ".tar.gz" case to return "tar.gz" as the extension.
+     * extname does not handle this case correctly, so use this function on the server side as well.
+     * @returns The file extension (e.g., "pdf"). If no extension is found, returns an empty string.
+     ***/
+    const hasPeriod = fileName.includes(".");
+    const hasTarGz = fileName.toLowerCase().endsWith(".tar.gz");
+    if (hasTarGz) {
+        return "tar.gz";
+    }
+    else if (!hasPeriod) {
+        return "";
+    }
+    else {
+        // Convert to lowercase just in case
+        return fileName.split(".").pop()?.toLowerCase() ?? "";
+    }
+};
+
+export const getMimeType = (extension: string): string => {
+    /***
+     * @param extension - The file extension (e.g., "pdf")
+     * This function returns the MIME type based on the file extension.
+     * @returns The corresponding MIME type as a string. If the extension is unrecognized, returns "application/octet-stream".
+     ***/
+
+    const potentialType = mime.getType(extension);
+    if (potentialType === null) {
+        return "application/octet-stream";
+    }
+    else {
+      return potentialType;
+    }
 };

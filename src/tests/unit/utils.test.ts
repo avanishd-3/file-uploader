@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { convertFileSize, formatDate } from "@/lib/utils/utils";
+import { convertFileSize, formatDate, getFileExtension, getMimeType } from "@/lib/utils/utils";
 
 // Mock time zone to UTC so date formatting tests are consistent
 // See: https://stackoverflow.com/questions/76911900/setting-a-timezone-in-vitest
@@ -63,3 +63,76 @@ describe("formatDate tests", () => {
     });
 });
 
+describe("getFileExtension tests", () => {
+    test("getFileExtension basic cases", () => {
+        expect(getFileExtension("document.pdf")).toBe("pdf");
+        expect(getFileExtension("main.js")).toBe("js");
+        expect(getFileExtension("image.jpeg")).toBe("jpeg");
+        expect(getFileExtension("video.mp4")).toBe("mp4");
+    });
+
+    test("getFileExtension works when file names have spaces", () => {
+        expect(getFileExtension("my document.pdf")).toBe("pdf");
+        expect(getFileExtension("holiday photo.jpeg")).toBe("jpeg");
+        expect(getFileExtension("Annual Report.pdf")).toBe("pdf");
+    });
+
+    test("getFileExtension handles uppercase extensions", () => {
+        expect(getFileExtension("Document 2.PDF")).toBe("pdf");
+        expect(getFileExtension("Main.Js")).toBe("js");
+        expect(getFileExtension("Image.JPEG")).toBe("jpeg");
+    });
+
+    test("getFileExtension handles files without extensions", () => {
+        expect(getFileExtension("README")).toBe("");
+        expect(getFileExtension("LICENSE")).toBe("");
+        expect(getFileExtension("Makefile")).toBe("");
+    });
+
+    test("getFileExtension handles tar.gz files", () => {
+        expect(getFileExtension("archive.somthing.tar.gz")).toBe("tar.gz");
+        expect(getFileExtension("backup.TAR.GZ")).toBe("tar.gz");
+        expect(getFileExtension("data.tar.gz")).toBe("tar.gz");
+    });
+
+    test("getFileExtension does not assume anything for other files with multiple periods", () => {
+        expect(getFileExtension("my.document.v2.pdf")).toBe("pdf");
+        expect(getFileExtension("version1.0.0.js")).toBe("js");
+    });
+});
+
+describe("getMimeType tests", () => {
+    test("getMimeType basic cases", () => {
+        expect(getMimeType("pdf")).toBe("application/pdf");
+        expect(getMimeType("json")).toBe("application/json");
+        expect(getMimeType("mp3")).toBe("audio/mpeg");
+        expect(getMimeType("mp4")).toBe("video/mp4");
+    });
+
+    test("getMimeType images", () => {
+        expect(getMimeType("jpg")).toBe("image/jpeg");
+        expect(getMimeType("jpeg")).toBe("image/jpeg");
+        expect(getMimeType("png")).toBe("image/png");
+        expect(getMimeType("gif")).toBe("image/gif");
+        expect(getMimeType("svg")).toBe("image/svg+xml");
+    });
+
+    test("getMimeType text", () => {
+        expect(getMimeType("txt")).toBe("text/plain");
+        expect(getMimeType("csv")).toBe("text/csv");
+        expect(getMimeType("html")).toBe("text/html");
+        expect(getMimeType("md")).toBe("text/markdown");
+        expect(getMimeType("css")).toBe("text/css");
+        // This is the only MIME type guaranteed to work for JS
+        // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/MIME_types#important_mime_types_for_web_developers
+        expect(getMimeType("js")).toBe("text/javascript");
+    });
+
+    test("getMimeType sql", () => {
+        expect(getMimeType("sql")).toBe("application/sql");
+    });
+
+    test("getMimeType no extension", () => {
+        expect(getMimeType("")).toBe("application/octet-stream");
+    });
+});
