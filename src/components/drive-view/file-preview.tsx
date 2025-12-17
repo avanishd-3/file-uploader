@@ -123,11 +123,8 @@ export function FilePreview({  previewModalOpen,
           download: true,
           header: true,
           worker: false, // TODO: See if this can be true when not using public folder for file storage (it must be false for now)
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          step: (row: any) => { // Row-by-row callback to not load entire file into memory
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+          step: (row: ParseStepResult<unknown>) => { // Row-by-row callback to not load entire file into memory
             console.log("Parsed row:", row.data);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
             rows.push(row.data);
           },
           complete: () => {
