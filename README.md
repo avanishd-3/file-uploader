@@ -27,7 +27,7 @@ The typewriter effect is from the [shadcn.io](https://www.shadcn.io/text/typing-
 
 Spreadsheets are parsed using [SheetJS](https://sheetjs.com/).
 
-CSVs are parsed using [react-papaparse](https://react-papaparse.js.org/)/
+CSVs are parsed using [react-papaparse](https://react-papaparse.js.org/).
 
 ### Architecture
 
