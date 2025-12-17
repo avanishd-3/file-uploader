@@ -14,7 +14,7 @@ import type { BundledLanguage } from "@/components/kibo-ui/code-block"
 import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue } from "@/components/kibo-ui/code-block"
 
 import Image from "next/image"
-import { checkFileExistsAction, readFileContentAction } from "@/lib/actions/other-actions";
+import { checkFileExistsAction, parseSpreadsheetAction, readFileContentAction } from "@/lib/actions/other-actions";
 import { MediaPlayer, MediaPlayerAudio, MediaPlayerControls, MediaPlayerControlsOverlay, MediaPlayerFullscreen, MediaPlayerLoop, MediaPlayerPlay, MediaPlayerPlaybackSpeed, MediaPlayerSeek, MediaPlayerSeekBackward, MediaPlayerSeekForward, MediaPlayerTime, MediaPlayerVideo, MediaPlayerVolume } from "../ui/media-player"
 import { toast } from "sonner"
 
@@ -23,6 +23,44 @@ import { usePapaParse } from "react-papaparse";
 import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "../data-table/data-table"
 import { DataTableColumnHeader } from "../data-table/data-table-column-header"
+import type { ParseStepResult } from "papaparse"
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getTableHeaders = (rows: any[]): ColumnDef<any>[] => {
+    /**
+     * @param data - An array of objects representing the data rows
+     * @description This function extracts the column names from the first row of the data array
+     * and returns an array of ColumnDef objects for use in a Tanstack data table.
+     * See: https://ui.shadcn.com/docs/components/data-table#column-definitions
+     * @returns An array of ColumnDef representing the headers. If the data array is empty, returns an empty array.
+     **/
+
+    if (rows.length === 0) {
+        return [];
+    }
+    else {
+      // Add column headers for data table
+      // See: https://ui.shadcn.com/docs/components/data-table#column-definitions
+      
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+
+      // Have this be any, otherwise the column definition in the header fails
+      // This is correct, it's just too much work to convince the TS compiler
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const columns: ColumnDef<any>[] = headers.map((header) => ({
+        accessorKey: header,
+        // Make any header sortable and hideable
+        // See: https://ui.shadcn.com/docs/components/data-table#column-header
+        header: ({ column}) => (
+          <DataTableColumnHeader column={column} title={header} />
+        )
+      }));
+
+      return columns;
+    }
+  }
 
 /**
  * Note: If an iframe fails to render something that exists, it will download it instead.
@@ -46,15 +84,23 @@ export function FilePreview({  previewModalOpen,
   // 1 use effect for multi-type file fetching to prevent excessive re-renders
   const [codeText, setCodeText] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [csvData, setCsvData] = useState<any[]>([]);
-  const [csvParseError, setCsvParseError] = useState<boolean>(false);
+  const [sheetData, setSheetData] = useState<any[]>([]);
+  const [sheetParseError, setSheetParseError] = useState<boolean>(false);
   const { readRemoteFile } = usePapaParse();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [csvTableColumns, setCsvTableColumns] = useState<ColumnDef<any>[]>([]); // Columns for CSV data table
+  const [sheetTableColumns, setSheeTableColumns] = useState<ColumnDef<any>[]>([]); // Columns for CSV data table
 
   useEffect(() => {
     // Destruct into array of JSON for code block
     const getData = async () => {
+      // Reset data on active file change
+      // Otherwise switching between files shows old data briefly, which is jarring
+      setCodeText("");
+      setSheetData([]);
+      setSheeTableColumns([]);
+      setSheetParseError(false);
+
+      // Fetch code content
       if (activeFile !== null && activeFile.type === "code") { // Technically extra effect runs but we need to check when activeFile changes
         console.log("Fetching code for file:", activeFile.name);
         const result = await readFileContentAction((activeFile).url);
@@ -87,33 +133,40 @@ export function FilePreview({  previewModalOpen,
           complete: () => {
             console.log("CSV parsing complete:", rows.length, "rows parsed.");
 
+            // Since first row of CSV is always just headers, remove it from data
             const data = rows.slice(1); // JS version of rows[1:]
-            setCsvData(data);
+            setSheetData(data);
             
-            // Add column headers for data table
-            // See: https://ui.shadcn.com/docs/components/data-table#column-definitions
+            // Set columns for data table
+            const columns = getTableHeaders(rows);
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const columns: ColumnDef<any>[] = headers.map((header) => ({
-              accessorKey: header,
-              // Make any header sortable and hideable
-              // See: https://ui.shadcn.com/docs/components/data-table#column-header
-              header: ({ column}) => (
-                <DataTableColumnHeader column={column} title={header} />
-              )
-            }));
-
-            setCsvTableColumns(columns);
+            setSheeTableColumns(columns);
             console.log("CSV table columns set:", columns);
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           error: (error: any) => {
             console.error("Error parsing CSV file:", error);
-            setCsvParseError(true);
+            setSheetParseError(true);
           }
         });
+      }
+      // Parse data if XLSX
+      else if (activeFile !== null && activeFile.type === "sheet" && activeFile.extension === "xlsx") {
+      //  const response = await fetch(`/api/parseSpreadSheet?path=${encodeURIComponent((activeFile).url)}`);
+        const result = await parseSpreadsheetAction((activeFile).url);
+        if (result !== "") {
+          console.log("XLSX parsing result:", result);
+          setSheetData(result);
+
+          // Set columns for data table
+          const columns = getTableHeaders(result);
+
+          setSheeTableColumns(columns);
+          console.log("XLSX table columns set:", columns);
+        } else {
+          console.error("Error fetching XLSX data:");
+          setSheetParseError(true);
+      }
       }
       
     };
@@ -309,13 +362,13 @@ export function FilePreview({  previewModalOpen,
                 
               </div> ) : activeFile?.type === "sheet" ? (
                 <div className="w-full h-[65vh] bg-muted rounded-md flex items-center justify-center">
-                  {activeFile.extension === "csv" && !csvParseError ? ( 
+                  {activeFile.extension === "csv" || activeFile.extension === "xlsx" && !sheetParseError ? ( 
                   // Use 95% width so there is some padding around the table
                   // mt-4 is so view button is not at the very top edge
                   <div className="w-[95%] h-full mt-4 overflow-auto">
                     {/* Use table for CSV preview */}
                     {/* See: https://ui.shadcn.com/docs/components/data-table#render-the-table */}
-                    <DataTable columns={csvTableColumns} data={csvData} />
+                    <DataTable columns={sheetTableColumns} data={sheetData} />
                   </div>
                   ) : (
                     // Fallback sheet icon

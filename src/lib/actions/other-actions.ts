@@ -7,6 +7,10 @@ import type { FolderItem } from "@/lib/file";
 import { getFilesByParentId } from "@/data-access/file-access";
 import { getFoldersByParentId } from "@/data-access/folder-access";
 import { getBreadCrumb } from "@/data-access/other-access";
+import { getFileExtension } from "../utils/utils";
+
+import { read as XLSXread, utils as XLSXUtils } from 'xlsx';
+
 
 export async function getBreadcrumbsAction(parentId: string | null) {
 
@@ -88,4 +92,70 @@ export async function readFileContentAction(filePath: string | undefined): Promi
         console.error("Error reading file:", error);
         return "";
     }
+}
+
+// Next.js cannot deserialize Response over network boundary, so just return JSON data or empty string
+export async function parseSpreadsheetAction(filePath: string) {
+    /**
+     * @param filePath - Path to the spreadsheet file relative to the public folder
+     * @description Parses an XLSX spreadsheet file and converts the first sheet to JSON.
+     * Assumes the server had permission to read the file. Since the server is creating the file in the first place,
+     * this should be true.
+     * @returns NextResponse with JSON data or error message
+     */
+    
+    // Do not allow directory traversal attacks
+    if (filePath.includes('..')) {
+        return "";
+    }
+    
+    // TODO: Switch to S3 bucket url
+    const absolutePath = path.join(process.cwd(), 'public', filePath);
+
+    // Check if the file exists
+    // Even though this is duplication of checkFileExistsAction, it prevents an extra network call
+    const stats = await fsPromises.stat(absolutePath).catch(() => null);
+    if (!stats?.isFile()) {
+        return "";
+    }
+
+    // Check that file extension is xlsx
+    const extension = getFileExtension(absolutePath);
+    if (extension !== 'xlsx') {
+        return "";
+    }
+
+    // Convert file to buffer
+    // XLSXreadFile throws an error otherwise
+    const fileBuffer = await fsPromises.readFile(absolutePath);
+
+    // Convert to JSON
+    // See question in: https://stackoverflow.com/questions/68866182/converting-excel-data-to-json-using-sheetjs 
+    const workbook = XLSXread(fileBuffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+
+    if (!sheetName) {
+        return "";
+    }
+    const sheet = workbook.Sheets[sheetName];
+
+    if (!sheet) {
+        return "";
+    }
+    const jsonData = XLSXUtils.sheet_to_json(sheet);
+
+    if (jsonData === undefined || jsonData === null || jsonData.length === 0) {
+        return "";
+    }
+
+    // See: https://stackoverflow.com/questions/77091418/warning-only-plain-objects-can-be-passed-to-client-components-from-server-compo
+    // Reason: If you don't deep copy the object, the value passed to the client component is a reference to an object on the server side
+    // Need to disable no unsafe assignment b/c the structure of the JSON is unknown since sheet content is dynamic
+    
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    const data: any[] = JSON.parse(JSON.stringify(jsonData)); // Ensure serializability
+    console.log(data);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return data;
 }
