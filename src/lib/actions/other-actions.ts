@@ -48,9 +48,7 @@ export async function getFilesandFoldersAction(parentId: string | null) {
 export async function checkFileExistsAction(url: string): Promise<boolean> {
     // Check if file exists on Node.js server
 
-    // TODO: Switch to S3 bucket check
-
-    const publicDir = path.join(process.cwd(), 'public'); 
+    // TODO: Support S3 bucket
 
     // Remove query parameters from URL if any
     const cleanUrl = url?.split('?')[0];
@@ -60,7 +58,8 @@ export async function checkFileExistsAction(url: string): Promise<boolean> {
         return false;
     }
 
-    const filePath = path.join(publicDir, cleanUrl);
+    
+    const filePath = path.join(process.cwd(), cleanUrl);
     try {
         const stats = await fsPromises.stat(filePath);
         return stats.isFile();
@@ -81,8 +80,7 @@ export async function readFileContentAction(filePath: string | undefined): Promi
         return "";
     }
 
-    const publicDir = path.join(process.cwd(), 'public'); 
-    const fullPath = path.join(publicDir, filePath);
+    const fullPath = path.join(process.cwd(), filePath);
 
     try {
         console.log("Reading file from path:", fullPath);
@@ -97,7 +95,7 @@ export async function readFileContentAction(filePath: string | undefined): Promi
 // Next.js cannot deserialize Response over network boundary, so just return JSON data or empty string
 export async function parseSpreadsheetAction(filePath: string) {
     /**
-     * @param filePath - Path to the spreadsheet file relative to the public folder
+     * @param filePath - Path to the spreadsheet file (e.g., /uploads/myfile.xlsx)
      * @description Parses an XLSX spreadsheet file and converts the first sheet to JSON.
      * Assumes the server had permission to read the file. Since the server is creating the file in the first place,
      * this should be true.
@@ -110,7 +108,7 @@ export async function parseSpreadsheetAction(filePath: string) {
     }
     
     // TODO: Switch to S3 bucket url
-    const absolutePath = path.join(process.cwd(), 'public', filePath);
+    const absolutePath = path.join(process.cwd(), filePath);
 
     // Check if the file exists
     // Even though this is duplication of checkFileExistsAction, it prevents an extra network call

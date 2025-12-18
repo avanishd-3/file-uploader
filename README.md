@@ -37,4 +37,8 @@ The backend is Next.js API routes and Server Actions. The API routes are for han
 
 ## How do I deploy this?
 
+See `src/env.js` for required environment variables.
+
+`.env.example` shows a sample configuration.
+
 Follow these deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.

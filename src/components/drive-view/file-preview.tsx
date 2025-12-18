@@ -75,8 +75,8 @@ export function FilePreview({  previewModalOpen,
   getFileIcon: (type: FileorFolderType) => JSX.Element
 }) {
 
-  // This should only be used if activeFile is an audio file
-  const activeFileUrl = activeFile && (activeFile as FileItem).url ? (activeFile as FileItem).url : ""
+  // URL for previewing files stored on server (not needed for code or sheet files since these are fetched differently)
+  const previewURL = `/api/previewFile?path=${activeFile ? encodeURIComponent((activeFile as FileItem).url) : ""}`
 
   // Code block data for code files
   let code: CodeBlockData[] = [];
@@ -113,16 +113,16 @@ export function FilePreview({  previewModalOpen,
       else if (activeFile !== null && activeFile.type === "sheet" && activeFile.extension === "csv") {
 
         // Stream big file in worker thread
-        console.log("Parsing CSV file:", activeFile.name);
+        console.log(`Parsing CSV file ${activeFile.name} at URL: ${(activeFile).url}`);
 
         // Rows need to be any since no schema available
         // Prevent excess sets by using a local array to accumulate rows
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const rows: any[] = [];
-        readRemoteFile(activeFile.url, {
+        readRemoteFile(previewURL, {
           download: true,
           header: true,
-          worker: false, // TODO: See if this can be true when not using public folder for file storage (it must be false for now)
+          worker: false, // Error if true, but this should be fine since user probably wants to wait for preview anyway
           step: (row: ParseStepResult<unknown>) => { // Row-by-row callback to not load entire file into memory
             console.log("Parsed row:", row.data);
             rows.push(row.data);
@@ -149,7 +149,6 @@ export function FilePreview({  previewModalOpen,
       }
       // Parse data if XLSX
       else if (activeFile !== null && activeFile.type === "sheet" && activeFile.extension === "xlsx") {
-      //  const response = await fetch(`/api/parseSpreadSheet?path=${encodeURIComponent((activeFile).url)}`);
         const result = await parseSpreadsheetAction((activeFile).url);
         if (result !== "") {
           console.log("XLSX parsing result:", result);
@@ -168,7 +167,8 @@ export function FilePreview({  previewModalOpen,
       
     };
     void getData();
-  }, [activeFile, readRemoteFile]);
+    // previewURL will only change when activeFile changes, so this is a little redundant but satisfies the linter
+  }, [activeFile, previewURL, readRemoteFile]);
   
   if (activeFile?.type === "code") {
     console.log("Code text:", codeText);
@@ -210,7 +210,7 @@ export function FilePreview({  previewModalOpen,
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
                 {fileExists ? (
                   <Image
-                  src={activeFile.url}
+                  src={previewURL}
                   alt={activeFile.name}
                   fill
                   sizes="(min-width: 808px) 50vw, 100vw"
@@ -235,7 +235,7 @@ export function FilePreview({  previewModalOpen,
                   
                 ) : (
                   // w-full and h-full to fill parent div
-                  <iframe src={activeFile.url} className="w-full h-full"/>
+                  <iframe src={previewURL} className="w-full h-full"/>
                 )}
                 
               </div>
@@ -250,7 +250,7 @@ export function FilePreview({  previewModalOpen,
               // See: https://www.diceui.com/docs/components/media-player#audio-player
               <MediaPlayer>
                 <MediaPlayerAudio className="sr-only">
-                  <source src={activeFileUrl} type="audio/mp3" />
+                  <source src={previewURL} type="audio/mp3" />
                 </MediaPlayerAudio>
                 <MediaPlayerControls className="flex-col items-start gap-2.5">
                   <MediaPlayerSeek withTime />
@@ -279,7 +279,7 @@ export function FilePreview({  previewModalOpen,
               // No PiP (picture-in-picture) b/c browsers (at least Firefox) overlay their own button on videos
               <MediaPlayer>
                 <MediaPlayerVideo>
-                  <source src={activeFileUrl} type="video/mp4" />
+                  <source src={previewURL} type="video/mp4" />
                 </MediaPlayerVideo>
                 <MediaPlayerControls className="flex-col items-start gap-2.5">
                   <MediaPlayerControlsOverlay />
@@ -310,7 +310,7 @@ export function FilePreview({  previewModalOpen,
                     <TextIcon size="lg" />
                   </>
                 ) : (
-                  <iframe src={(activeFile)?.url} className="w-full h-full"/>
+                  <iframe src={previewURL} className="w-full h-full"/>
                 )}
                 
               </div>

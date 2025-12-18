@@ -61,8 +61,6 @@ const getDecrementAncestorItemsByOneQuery = (parentId: string | null): SQL => {
 };
 
 
-// TODO -> Add auth to this stuff
-
 /* File queries */
 export async function getFileById(fileId: string) {
     return db.query.file.findFirst({
@@ -173,7 +171,7 @@ export async function createFile(
 
 /* Delete file */
 export async function deleteFile(fileId: string) {
-    // TODO -> Delete file from uploads directory / Supabase storage / S3 bucket
+    // TODO -> Support S3 bucket
 
     // Update ancestor item counts
     const currentFile = await db.query.file.findFirst({
@@ -187,8 +185,8 @@ export async function deleteFile(fileId: string) {
 
     // Delete file from server
     if (currentFile) {
-        const publicDir = path.join(process.cwd(), 'public'); 
-        const filePath = path.join(publicDir, currentFile.url);
+        const filePath = path.join(process.cwd(), currentFile.url);
+        console.log("Deleting file at path:", filePath);
         unlink(filePath, (_err) => {
             // Ignore errors for now
             // TODO: Handle errors properly

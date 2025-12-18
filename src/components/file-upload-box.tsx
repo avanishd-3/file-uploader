@@ -7,13 +7,12 @@ import {
   FileUploadItem,
   FileUploadItemDelete,
   FileUploadItemMetadata,
-  FileUploadItemPreview,
   FileUploadItemProgress,
   FileUploadList,
   type FileUploadProps,
   FileUploadTrigger,
 } from "@/components/ui/file-upload";
-import { Upload, X } from "lucide-react";
+import { File, Upload, X } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import type { FileorFolderItem } from "../lib/file";
@@ -75,7 +74,7 @@ export const FileUploadBox = ({
           {files.map((file, index) => (
             <FileUploadItem key={index} value={file} className="flex-col">
               <div className="flex w-full items-center gap-2">
-                <FileUploadItemPreview />
+                <File className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden [&>svg]:size-10"/>
                 <FileUploadItemMetadata />
                 <FileUploadItemDelete asChild>
                   <Button variant="ghost" size="icon" className="size-7">

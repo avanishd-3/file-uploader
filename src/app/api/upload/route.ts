@@ -1,18 +1,20 @@
 import fs from 'fs'
 import path from 'path'
 
+import { uploadDir } from '@/server'
+
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic' // Disable static generation for this route
 
-// TODO -> Use Supabase Storage or S3 for file uploads in production
 export async function POST(req: Request) {
+    // TODO: Support S3 bucket uploads
 
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads') // Ensure that /public/uploads exists
+    const absoluteUploadDir = path.join(process.cwd(), uploadDir) // Ensure upload directory exists
 
     // Create the upload directory if it doesn't exist
-    if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true })
+    if (!fs.existsSync(absoluteUploadDir)) {
+        fs.mkdirSync(absoluteUploadDir, { recursive: true })
     }
 
     // Cannot use formidable b/c Next.js app router receives Web API requests
@@ -33,7 +35,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Save the file to the upload directory
-    const filePath = path.join(uploadDir, file.name); // Use original filename for simplicity
+    const filePath = path.join(absoluteUploadDir, file.name); // Use original filename for simplicity
     fs.writeFileSync(filePath, buffer);
 
     // Return the file path or URL as needed

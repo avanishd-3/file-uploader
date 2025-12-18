@@ -2,16 +2,6 @@
 
 import { cn } from "@/lib/utils/utils";
 import { Slot } from "@radix-ui/react-slot";
-import {
-  FileArchiveIcon,
-  FileAudioIcon,
-  FileCodeIcon,
-  FileCogIcon,
-  FileIcon,
-  FileTextIcon,
-  FileVideoIcon,
-} from "lucide-react";
-import Image from "next/image";
 import * as React from "react";
 
 const ROOT_NAME = "FileUpload";
@@ -19,7 +9,6 @@ const DROPZONE_NAME = "FileUploadDropzone";
 const TRIGGER_NAME = "FileUploadTrigger";
 const LIST_NAME = "FileUploadList";
 const ITEM_NAME = "FileUploadItem";
-const ITEM_PREVIEW_NAME = "FileUploadItemPreview";
 const ITEM_METADATA_NAME = "FileUploadItemMetadata";
 const ITEM_PROGRESS_NAME = "FileUploadItemProgress";
 const ITEM_DELETE_NAME = "FileUploadItemDelete";
@@ -961,125 +950,6 @@ function formatBytes(bytes: number) {
   return `${(bytes / 1024 ** i).toFixed(i ? 1 : 0)} ${sizes[i]}`;
 }
 
-function getFileIcon(file: File) {
-  const type = file.type;
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-
-  if (type.startsWith("video/")) {
-    return <FileVideoIcon />;
-  }
-
-  if (type.startsWith("audio/")) {
-    return <FileAudioIcon />;
-  }
-
-  if (
-    type.startsWith("text/") ||
-    ["txt", "md", "rtf", "pdf"].includes(extension)
-  ) {
-    return <FileTextIcon />;
-  }
-
-  if (
-    [
-      "html",
-      "css",
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json",
-      "xml",
-      "php",
-      "py",
-      "rb",
-      "java",
-      "c",
-      "cpp",
-      "cs",
-    ].includes(extension)
-  ) {
-    return <FileCodeIcon />;
-  }
-
-  if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(extension)) {
-    return <FileArchiveIcon />;
-  }
-
-  if (
-    ["exe", "msi", "app", "apk", "deb", "rpm"].includes(extension) ||
-    type.startsWith("application/")
-  ) {
-    return <FileCogIcon />;
-  }
-
-  return <FileIcon />;
-}
-
-interface FileUploadItemPreviewProps
-  extends React.ComponentPropsWithoutRef<"div"> {
-  render?: (file: File) => React.ReactNode;
-  asChild?: boolean;
-}
-
-function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
-  const { render, asChild, children, className, ...previewProps } = props;
-
-  const itemContext = useFileUploadItemContext(ITEM_PREVIEW_NAME);
-  const urlCache = useLazyRef(() => new WeakMap<File, string>()).current;
-
-  const onPreviewRender = React.useCallback(
-    (file: File) => {
-      if (render) return render(file);
-
-      if (itemContext.fileState?.file.type.startsWith("image/")) {
-        let url = urlCache.get(file);
-        if (!url) {
-          url = URL.createObjectURL(file);
-          urlCache.set(file, url);
-        }
-        return (
-          <Image
-            src={url}
-            alt={file.name}
-            className="size-full object-cover"
-            onLoad={(event) => {
-              if (!(event.target instanceof HTMLImageElement)) return;
-              const cachedUrl = urlCache.get(file);
-              if (cachedUrl) {
-                URL.revokeObjectURL(cachedUrl);
-                urlCache.delete(file);
-              }
-            }}
-          />
-        );
-      }
-
-      return getFileIcon(file);
-    },
-    [render, itemContext.fileState?.file.type, urlCache],
-  );
-
-  if (!itemContext.fileState) return null;
-
-  const ItemPreviewPrimitive = asChild ? Slot : "div";
-
-  return (
-    <ItemPreviewPrimitive
-      aria-labelledby={itemContext.nameId}
-      data-slot="file-upload-preview"
-      {...previewProps}
-      className={cn(
-        "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50 [&>svg]:size-10",
-        className,
-      )}
-    >
-      {onPreviewRender(itemContext.fileState.file)}
-      {children}
-    </ItemPreviewPrimitive>
-  );
-}
-
 interface FileUploadItemMetadataProps
   extends React.ComponentPropsWithoutRef<"div"> {
   asChild?: boolean;
@@ -1371,7 +1241,6 @@ export {
   FileUploadTrigger,
   FileUploadList,
   FileUploadItem,
-  FileUploadItemPreview,
   FileUploadItemMetadata,
   FileUploadItemProgress,
   FileUploadItemDelete,
@@ -1382,7 +1251,6 @@ export {
   FileUploadTrigger as Trigger,
   FileUploadList as List,
   FileUploadItem as Item,
-  FileUploadItemPreview as ItemPreview,
   FileUploadItemMetadata as ItemMetadata,
   FileUploadItemProgress as ItemProgress,
   FileUploadItemDelete as ItemDelete,

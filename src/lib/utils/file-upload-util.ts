@@ -5,7 +5,14 @@ import type { FileorFolderItem } from "../file";
 import { getFileExtension } from "./utils";
 import { getFileType, convertFileSize } from "./utils";
 
+import { z } from "zod";
+
 // This is in its own file b/c it uses server code and having it with the other utils doesn't work w/ Vitest
+
+const FileUploadServerResponse = z.object({
+  message: z.string(),
+  filePath: z.string(),
+});
 
 export async function handleFileUpload(files: File[], onProgress: (file: File, progress: number) => void, onSuccess: (file: File) => void, currParentId: string | null, onError: (file: File, error: Error) => void, setCurrFiles: React.Dispatch<React.SetStateAction<FileorFolderItem[]>>) {
   try {
@@ -30,6 +37,18 @@ export async function handleFileUpload(files: File[], onProgress: (file: File, p
             if (xhr.status === 200) {
               onSuccess(file);
 
+              // Use Zod to ensure server response is valid
+              const response = FileUploadServerResponse.safeParse(JSON.parse(xhr.responseText));
+
+              if (!response.success) {
+                onError(file, new Error("Invalid server response"));
+                reject(new Error("Invalid server response"));
+                return;
+              }
+
+              const filePath = response.data.filePath;
+              console.log("File uploaded to:", filePath);
+
               await createFileAction(
                 file.name,
                 getFileType(file.name),
@@ -37,8 +56,7 @@ export async function handleFileUpload(files: File[], onProgress: (file: File, p
                 new Date(),
                 getFileExtension(file.name),
                 currParentId,
-                // TODO -> Switch to using file URL from server response
-                `/uploads/${file.name}`
+                filePath
               );
 
               resolve();

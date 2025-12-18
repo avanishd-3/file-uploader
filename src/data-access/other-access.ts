@@ -5,8 +5,6 @@ import { db } from "@/server/db";
 import { sql } from "drizzle-orm";
 
 
-// TODO -> Add auth to this stuff
-
 export async function getBreadCrumb(parentId: string | null) {
     // Recursive SQL is mainly supported in PostgreSQL
 

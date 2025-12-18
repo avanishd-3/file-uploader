@@ -83,8 +83,6 @@ const getAllDescendantFolderIds = (folderId: string | null): SQL => {
             SELECT id FROM descendants WHERE id != ${folderId}`; // Exclude the original folderId
 };
 
-// TODO -> Add auth to this stuff
-
 /* Folder queries */
 export async function getAllFolders() {
     return db.query.folder.findMany({
@@ -190,7 +188,7 @@ export async function deleteFolder(folderId: string) {
 
     // No need to delete subfiles and subfolders manually since onDelete cascade will handle it
 
-    // TODO -> Delete all files in folder from uploads directory / Supabase storage / S3 bucket
+    // TODO -> Support S3 bucket
 
     // Update ancestor item counts
     const currentFolder = await db.query.folder.findFirst({
@@ -218,8 +216,7 @@ export async function deleteFolder(folderId: string) {
     for (const file of filesToDelete) {
         // Delete file from server
         if (file) {
-            const publicDir = path.join(process.cwd(), 'public'); 
-            const filePath = path.join(publicDir, file.url);
+            const filePath = path.join(process.cwd(), file.url);
             unlink(filePath, (_err) => {
                 // Ignore errors for now
                 // TODO: Handle errors properly

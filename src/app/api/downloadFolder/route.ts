@@ -30,8 +30,8 @@ export async function GET(req: Request) {
     zip.folder(folderPath);
 
     for (const file of files) {
-        // TODO: Switch to S3 bucket url
-        const fileAbsolutePath = path.join(process.cwd(), 'public', file.url);
+        // TODO: Support S3 bucket url
+        const fileAbsolutePath = path.join(process.cwd(), file.url);
 
         // Check if the file exists
         const stats = await fsPromises.stat(fileAbsolutePath).catch(() => null);
