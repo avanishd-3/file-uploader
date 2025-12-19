@@ -791,7 +791,8 @@ export default function FileManager(
 
               {/* No need to filter out files b/c allUserFolders is FolderItem[] */}
               {allUserFolders
-                .filter((folder) => folder.id !== currentParentId) // Exclude current folder
+                .filter((folder) => folder.id !== currentParentId) // Exclude current parent b/c can't move into same folder
+               .filter((folder) => activeFile?.type !== "folder" || folder.id !== activeFile.id) // Exclude self if moving folder
                 .map((folder) => (
                   <MoveDestinationFolder
                     key={folder.id}
