@@ -11,7 +11,7 @@ import { AudioIcon, CodeIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, Te
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import type { BundledLanguage } from "@/components/kibo-ui/code-block"
-import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue } from "@/components/kibo-ui/code-block"
+import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue, CodeBlockDownloadButton } from "@/components/kibo-ui/code-block"
 
 import Image from "next/image"
 import { checkFileExistsAction, parseSpreadsheetAction, readFileContentAction } from "@/lib/actions/other-actions";
@@ -24,6 +24,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "../data-table/data-table"
 import { DataTableColumnHeader } from "../data-table/data-table-column-header"
 import type { ParseStepResult } from "papaparse"
+import { downloadFileClient } from "@/lib/utils/client-only-utils"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getTableHeaders = (rows: any[]): ColumnDef<any>[] => {
@@ -345,6 +346,10 @@ export function FilePreview({  previewModalOpen,
                     <CodeBlockCopyButton
                       onCopy={() => toast.success("Code copied to clipboard")}
                       onError={() => toast.error("Failed to copy code to clipboard")}
+                    />
+                    <CodeBlockDownloadButton
+                      downloadAction={() => downloadFileClient((activeFile).url)}
+                      onError={() => toast.error("Failed to download code")}
                     />
                     </CodeBlockHeader>
                     <CodeBlockBody>

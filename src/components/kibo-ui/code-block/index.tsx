@@ -9,7 +9,7 @@ import {
   transformerNotationHighlight,
   transformerNotationWordHighlight,
 } from "@shikijs/transformers";
-import { CheckIcon, CopyIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, DownloadIcon } from "lucide-react";
 import type {
   ComponentProps,
   HTMLAttributes,
@@ -522,6 +522,61 @@ export const CodeBlockCopyButton = ({
     <Button
       className={cn("shrink-0", className)}
       onClick={copyToClipboard}
+      size="icon"
+      variant="ghost"
+      {...props}
+    >
+      {children ?? <Icon className="text-muted-foreground" size={14} />}
+    </Button>
+  );
+};
+
+// Browser shows indication when file is downloaded, so no need for us to show anything
+export type CodeBlockDownloadButtonProps = ComponentProps<typeof Button> & {
+  downloadAction: () => Promise<void>;
+  onError?: (error: Error) => void;
+};
+
+export const CodeBlockDownloadButton = ({
+  asChild,
+  downloadAction,
+  onError,
+  children,
+  className,
+  ...props
+}: CodeBlockDownloadButtonProps) => {
+  const [isDownloaded, setIsDownloaded] = useState(false);
+
+  const downloadFile = async () => {
+    try {
+      await downloadAction();
+      setIsDownloaded(true);
+
+      // Set timer to reset isDownloaded after 2 seconds
+      setTimeout(() => setIsDownloaded(false), 2000);
+    } catch (error) {
+      onError?.(error as Error);
+      return;
+    }
+    
+  };
+
+  if (asChild) {
+    return cloneElement(children as ReactElement, {
+      // @ts-expect-error - we know this is a button
+
+      // This disable should be fine
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      onClick: downloadFile,
+    });
+  }
+
+  const Icon = isDownloaded ? CheckIcon : DownloadIcon;
+
+  return (
+    <Button
+      className={cn("shrink-0", className)}
+      onClick={downloadFile}
       size="icon"
       variant="ghost"
       {...props}
