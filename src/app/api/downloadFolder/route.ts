@@ -4,9 +4,26 @@ import jszip from 'jszip';
 
 import { NextResponse } from 'next/server';
 import { getFilesByParentNameAction } from '@/lib/actions/file-actions';
-import { convertNodeReadStreamToWebStream } from '@/lib/utils/server-utils';
 
 export const dynamic = 'force-dynamic'; // Disable static generation for this route
+
+// Zip node stream is not async iterable, so the server utils conversion won't work
+// This conversion is simple & not robust to errors, but it should be good enough here
+function convertNodeReadStreamToWebStream(nodeStream: NodeJS.ReadableStream) {
+    return new ReadableStream({
+        start(controller) {
+            nodeStream.on('data', (chunk) => {
+                controller.enqueue(chunk);
+            });
+            nodeStream.on('end', () => {
+                controller.close();
+            });
+            nodeStream.on('error', (err) => {
+                controller.error(err);
+            });
+        }
+    });
+}
 
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
