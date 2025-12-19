@@ -17,11 +17,13 @@ This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3
 
 Most of the components in src/components/ui are from [shadcn/ui](https://ui.shadcn.com/).
 
-The file dropzone, audio player, and video player are from [Dice UI](https://www.diceui.com/).
+The file dropzone, audio player, and video player were originally from [Dice UI](https://www.diceui.com/).
+The item preview component has been removed from the file drop zone (`src/components/ui/file-upload.tsx`)
 
-The code preview is from [Kibo UI](https://www.kibo-ui.com/components/code-block#installation).
 
-The typewriter effect is from the [shadcn.io](https://www.shadcn.io/text/typing-text#api-reference).
+The code preview was originally from [Kibo UI](https://www.kibo-ui.com/components/code-block#installation), and now has an added download button component.
+
+The typewriter effect is from [shadcn.io](https://www.shadcn.io/text/typing-text#api-reference).
 
 ### Parsing
 
