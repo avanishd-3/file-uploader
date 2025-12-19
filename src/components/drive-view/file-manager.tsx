@@ -209,7 +209,7 @@ export default function FileManager(
   const [filesandFolders, setFilesandFolders] = useState<FileorFolderItem[]>(initialItems);
 
   // All folders for move modal
-  const [allUserFolders] = useState<FolderItem[]>(allFolders);
+  const [allUserFolders, setAllUserFolders] = useState<FolderItem[]>(allFolders);
 
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
@@ -369,10 +369,19 @@ export default function FileManager(
     // Update file list by fetching new list from server
     const newFilesandFolders = await getFilesandFoldersAction(currentParentId);
 
+    const newFolders = newFilesandFolders.filter((item) => item.type === "folder") as FolderItem[];
+
+    console.log("All user folders before folder creation:", allUserFolders);
+
+    // Merge new folders with existing allUserFolders, excluding duplicates
+    const newAllFolders = allUserFolders.concat(newFolders.filter((nf) => !allUserFolders.some((of) => of.id === nf.id)));
+    
+    console.log("All folders after folder creation:", newAllFolders);
     // Replace previous files with new ones
     // This ensures that the UI reflects the latest state of files
     // and folders in the current directory
     setFilesandFolders(() => newFilesandFolders);
+    setAllUserFolders(newAllFolders); // Update all folders for move modal
     
     // Reset state
     setNewFolderName("") // Reset folder name input
@@ -418,6 +427,7 @@ export default function FileManager(
       // No need to fetch from server, because just deleting files or folders
       // Create changes the order, so the updated list needs to be fetched from the server
       setFilesandFolders((prev) => prev.filter((file) => !selectedFiles.includes(file.id)))
+      setAllUserFolders((prev) => prev.filter((folder) => !selectedFiles.includes(folder.id))) // Update all folders for move modal
       setSelectedFiles([])
     } else if (activeFile) {
       
@@ -437,6 +447,7 @@ export default function FileManager(
       // No need to fetch from server, because just deleting a file or folder
       // Create changes the order, so the updated list needs to be fetched from the server
       setFilesandFolders((prev) => prev.filter((file) => file.id !== activeFile.id))
+      setAllUserFolders((prev) => prev.filter((folder) => folder.id !== activeFile.id)) // Update all folders for move modal
       setActiveFile(null)
     }
   }
