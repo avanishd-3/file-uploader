@@ -530,7 +530,7 @@ export const CodeBlockCopyButton = ({
       <TooltipTrigger asChild>
         <Button
         // The text-muted-foreground and hover:text-foreground makes the icon feel more clickable
-        // It's used in Vercel AI elements code block too
+        // It's used in Vercel AI elements artifact too
           className={cn("shrink-0 text-muted-foreground hover:text-foreground", className)}
           onClick={copyToClipboard}
           size="icon"
@@ -596,7 +596,7 @@ export const CodeBlockDownloadButton = ({
       <TooltipTrigger asChild>
         <Button
           // The text-muted-foreground and hover:text-foreground makes the icon feel more clickable
-          // It's used in Vercel AI elements code block too
+          // It's used in Vercel AI elements artifact too
           className={cn("shrink-0 text-muted-foreground hover:text-foreground", className)}
           onClick={downloadFile}
           size="icon"
