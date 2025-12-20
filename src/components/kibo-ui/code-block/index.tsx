@@ -551,12 +551,14 @@ export const CodeBlockCopyButton = ({
 export type CodeBlockDownloadButtonProps = ComponentProps<typeof Button> & {
   downloadAction: () => Promise<void>;
   onError?: (error: Error) => void;
+  timeout?: number;
 };
 
 export const CodeBlockDownloadButton = ({
   asChild,
   downloadAction,
   onError,
+  timeout = 2000,
   children,
   className,
   ...props
@@ -569,7 +571,7 @@ export const CodeBlockDownloadButton = ({
       setIsDownloaded(true);
 
       // Set timer to reset isDownloaded after 2 seconds
-      setTimeout(() => setIsDownloaded(false), 2000);
+      setTimeout(() => setIsDownloaded(false), timeout);
     } catch (error) {
       onError?.(error as Error);
       return;
