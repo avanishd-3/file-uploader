@@ -107,6 +107,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
 import { cn } from "@/lib/utils/utils";
 
 export type { BundledLanguage } from "shiki";
@@ -519,15 +526,24 @@ export const CodeBlockCopyButton = ({
   const Icon = isCopied ? CheckIcon : CopyIcon;
 
   return (
-    <Button
-      className={cn("shrink-0", className)}
-      onClick={copyToClipboard}
-      size="icon"
-      variant="ghost"
-      {...props}
-    >
-      {children ?? <Icon className="text-muted-foreground" size={14} />}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+        // The text-muted-foreground and hover:text-foreground makes the icon feel more clickable
+        // It's used in Vercel AI elements code block too
+          className={cn("shrink-0 text-muted-foreground hover:text-foreground", className)}
+          onClick={copyToClipboard}
+          size="icon"
+          variant="ghost"
+          {...props}
+        >
+          {children ?? <Icon className="text-muted-foreground" size={14} />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Copy to clipboard</p>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -574,15 +590,25 @@ export const CodeBlockDownloadButton = ({
   const Icon = isDownloaded ? CheckIcon : DownloadIcon;
 
   return (
-    <Button
-      className={cn("shrink-0", className)}
-      onClick={downloadFile}
-      size="icon"
-      variant="ghost"
-      {...props}
-    >
-      {children ?? <Icon className="text-muted-foreground" size={14} />}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          // The text-muted-foreground and hover:text-foreground makes the icon feel more clickable
+          // It's used in Vercel AI elements code block too
+          className={cn("shrink-0 text-muted-foreground hover:text-foreground", className)}
+          onClick={downloadFile}
+          size="icon"
+          variant="ghost"
+          {...props}
+        >
+          {children ?? <Icon className="text-muted-foreground" size={14} />}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Download file</p>
+      </TooltipContent>
+    </Tooltip>
+    
   );
 };
 
