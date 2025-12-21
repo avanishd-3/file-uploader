@@ -82,6 +82,9 @@ export function FilePreview({  previewModalOpen,
   // Code block data for code files
   let code: CodeBlockData[] = [];
 
+  // Can consider txt and md as code for preview purposes, but docx has proprietary formatting
+  const shouldFetchCode = activeFile !== null && (activeFile.type === "code" || (activeFile.type === "document" && activeFile.extension !== "docx"));
+
   // 1 use effect for multi-type file fetching to prevent excessive re-renders
   const [codeText, setCodeText] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,7 +105,7 @@ export function FilePreview({  previewModalOpen,
       setSheetParseError(false);
 
       // Fetch code content
-      if (activeFile !== null && activeFile.type === "code") { // Technically extra effect runs but we need to check when activeFile changes
+      if (shouldFetchCode) { // Technically extra effect runs but we need to check when activeFile changes
         console.log("Fetching code for file:", activeFile.name);
         const result = await readFileContentAction((activeFile).url);
         setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
@@ -169,9 +172,10 @@ export function FilePreview({  previewModalOpen,
     };
     void getData();
     // previewURL will only change when activeFile changes, so this is a little redundant but satisfies the linter
-  }, [activeFile, previewURL, readRemoteFile]);
+    // same for shouldFetchCode
+  }, [activeFile, previewURL, readRemoteFile, shouldFetchCode]);
   
-  if (activeFile?.type === "code") {
+  if (shouldFetchCode) {
     console.log("Code text:", codeText);
     code = [
       {
@@ -302,20 +306,14 @@ export function FilePreview({  previewModalOpen,
               </MediaPlayer>
               }
               </>
-            ): activeFile?.type === "document" ? (
+            ): activeFile?.type === "document" && activeFile.extension === "docx" ? (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {/* TODO: Add docx preview support. Currently, the fallback is rendered */}
-                {!fileExists || activeFile.extension === "docx" ? (
-                  // Fallback file icon
-                  <>
-                    <TextIcon size="lg" />
-                  </>
-                ) : (
-                  <iframe src={previewURL} className="w-full h-full"/>
-                )}
-                
+                {/* TODO: Add proper markdown preview support. Currently, just rendering as plain text (no mermaid diagram support) */}
+                  <TextIcon size="lg" />
               </div>
-            ) : activeFile?.type === "code" ? (
+            ) : activeFile?.type === "code" || activeFile?.type === "document" ? (
+              // Non-docx documents only
               <div className="w-full h-[70vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback file icon
