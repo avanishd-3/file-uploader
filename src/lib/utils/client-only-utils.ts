@@ -38,3 +38,46 @@ export async function downloadFileClient(file_info: string, uri = "/api/download
     window.URL.revokeObjectURL(url);
     });
 }
+
+export type TraversedEntry = 
+  | { type: "file"; file: File; relativePath: string }
+  | { type: "folder"; relativePath: string };
+
+
+export async function traverseLocalFileTreeWithFolders(
+  item: FileSystemEntry | null, 
+  path = ""
+): Promise<TraversedEntry[]> {
+  /**
+   * @param item - The FileSystemEntry to traverse.
+   * @param path - The current path prefix for the entry.
+   * @description Traverses a local file tree starting from the given FileSystemEntry using BFS.
+   * @returns A promise that resolves to an array of TraversedEntry objects representing files and folders and their relative paths.
+   */
+  if (!item) return [];
+
+  const queue: Array<{ entry: FileSystemEntry; path: string }> = [{ entry: item, path }];
+  const result: TraversedEntry[] = [];
+
+  while (queue.length > 0) {
+    const { entry, path: currentPath } = queue.shift()!;
+
+    if (entry.isFile) {
+      const file = await new Promise<File>((resolve) => {
+        (entry as FileSystemFileEntry).file((file: File) => resolve(file));
+      });
+      result.push({ type: "file", file, relativePath: currentPath + file.name });
+    } else if (entry.isDirectory) {
+      result.push({ type: "folder", relativePath: currentPath + entry.name + "/" });
+
+      const entries: FileSystemEntry[] = await new Promise((resolve) => {
+        (entry as FileSystemDirectoryEntry).createReader().readEntries((entries: FileSystemEntry[]) => resolve(entries));
+      });
+      for (const child of entries) {
+        queue.push({ entry: child, path: currentPath + entry.name + "/" });
+      }
+    }
+  }
+
+  return result;
+}

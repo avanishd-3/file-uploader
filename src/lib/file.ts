@@ -1,4 +1,4 @@
-// Folder type
+// Folder type in database
 export interface FolderItem {
   id: string
   name: string
@@ -8,7 +8,7 @@ export interface FolderItem {
   parentId: string | null
 }
 
-// File type
+// File type in database
 export interface FileItem {
   id: string
   name: string
@@ -24,3 +24,11 @@ export type FileorFolderType = FileItem["type"] | FolderItem["type"]
 export type FileorFolderItem = FileItem | FolderItem
 
 export type FileType = FileItem["type"]
+
+
+// Actual file
+// For drag-and-drop upload handling
+export type FileWithParent = {
+  file: File;
+  parentId: string | null;
+}

@@ -35,12 +35,21 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Save the file to the upload directory
-    const filePath = path.join(absoluteUploadDir, file.name); // Use original filename for simplicity
-    fs.writeFileSync(filePath, buffer);
+    const fileName = file.name.split('/').pop(); // Get the original file name
+    if (!fileName) {
+        return NextResponse.json({ error: 'Invalid file name' }, { status: 400 });
+    }
+    const filePath = path.join(absoluteUploadDir, fileName); // Use original filename for simplicity
+    try {
+        fs.writeFileSync(filePath, buffer);
+    } catch (error) {
+        console.error('Error saving file:', error);
+        return NextResponse.json({ error: 'Error saving file' }, { status: 500 });
+    }
 
     // Return the file path or URL as needed
     return NextResponse.json({
         message: 'File uploaded successfully',
-        filePath: `/uploads/${file.name}`, // Return the URL to access the file
+        filePath: `/uploads/${fileName}`, // Return the URL to access the file
     }, { status: 200 });
 }

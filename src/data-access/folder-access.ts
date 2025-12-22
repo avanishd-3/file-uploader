@@ -8,6 +8,7 @@ import type { PgRaw } from "drizzle-orm/pg-core/query-builders/raw";
 import type { RowList } from "postgres";
 import path from "path";
 import { unlink } from "fs";
+import type { Transaction } from "@/lib/types/db-types";
 
 /**
  * How item counts work:
@@ -65,6 +66,27 @@ const getDecrementAncestorItemsCountByOne = (parentId: string | null): SQL => {
     
 }
 
+const getDecrementAncestorItemsCount = (parentId: string | null, num: number): SQL => {
+    return sql`
+            -- Use a recursive CTE to get all ancestors of the folder
+            -- Need double quotes for column names with uppercase letters
+            -- Need double quotes because table name has a hyphen
+
+            WITH RECURSIVE ancestors AS (
+                SELECT id, "parentId"
+                FROM "file-uploader_folder"
+                WHERE id = ${parentId}
+                UNION ALL
+                SELECT f.id, f."parentId"
+                FROM "file-uploader_folder" f
+                INNER JOIN ancestors a ON f.id = a."parentId"
+            )
+            UPDATE "file-uploader_folder"
+            SET items = items - ${num} -- Decrement the item count by the number of items in the folder
+            WHERE id IN (SELECT id FROM ancestors)`;
+    
+}
+
 const getAllDescendantFolderIds = (folderId: string | null): SQL => {
     return sql`
             -- Use a recursive CTE to get all descendants of the folder
@@ -83,6 +105,38 @@ const getAllDescendantFolderIds = (folderId: string | null): SQL => {
             SELECT id FROM descendants WHERE id != ${folderId}`; // Exclude the original folderId
 };
 
+// See: https://orm.drizzle.team/docs/perf-queries#placeholder
+function getFolderIdByNameAndParentIdQuery(transaction?: Transaction) {
+
+    if (transaction) {
+        return transaction.query.folder.findFirst({
+            where: (fields, { and, isNull }) => sql.placeholder('parentId') === null ? and(
+                eq(fields.name, sql.placeholder('name')),
+                isNull(fields.parentId),
+            ) : and(
+                eq(fields.name, sql.placeholder('name')),
+                eq(fields.parentId, sql.placeholder('parentId')),
+            ),
+            columns: { id: true },
+        }).prepare("getFolderIdByNameAndParentIdQuery");
+    }
+
+    else {
+        return db.query.folder.findFirst({
+            where: (fields, { and, isNull }) => sql.placeholder('parentId') === null ? and(
+                eq(fields.name, sql.placeholder('name')),
+                isNull(fields.parentId),
+            ) : and(
+                eq(fields.name, sql.placeholder('name')),
+                eq(fields.parentId, sql.placeholder('parentId')),
+            ),
+            columns: { id: true },
+        }).prepare("getFolderIdByNameAndParentIdQuery");
+    }
+}
+
+
+
 /* Folder queries */
 export async function getAllFolders() {
     return db.query.folder.findMany({
@@ -95,6 +149,66 @@ export async function getFolderById(folderId: string) {
     return db.query.folder.findFirst({
         where: eq(folder.id, folderId),
     });
+}
+
+export async function getFileParentIdByFilePath(currentParentId: string | null, path: string) {
+    // Ex input: Test/Test 2
+    console.log("Getting parent ID for file path:", path);
+    const pathParts = path.split('/')
+    console.log("Path parts:", pathParts);
+
+    if (pathParts.length <= 1 || !pathParts[0] || pathParts[0].trim() === "") {
+        // File is at the root level, so it has no parent
+        return null;
+    }
+
+    console.log("Searching for initial parent folder:", pathParts[0]);
+    console.log("Current parent ID:", currentParentId);
+
+    const firstFolderName = pathParts[0];
+
+    return db.query.folder.findFirst({
+            where: (fields, { and, isNull }) => currentParentId === null ? and(
+                eq(fields.name, firstFolderName),
+                isNull(fields.parentId),
+            ) : and(
+                eq(fields.name, firstFolderName),
+                eq(fields.parentId, currentParentId),
+            ),
+            columns: { id: true },
+        }).then(async (initialParent) => {
+            if (!initialParent) {
+                console.log("Initial parent folder not found");
+                return null;
+            }
+
+            let currentParentId: string | null = initialParent.id;
+            console.log("Initial parent folder ID:", currentParentId);
+
+            // Traverse down the folder hierarchy to find the parent folder
+            for (let i = 1; i < pathParts.length; i++) {
+                console.log("New parent folder ID:", currentParentId);
+                const folderName = pathParts[i];
+                if (!folderName || folderName.trim() === "" || !currentParentId) {
+                    return null;
+                }
+                const nextFolder = await db.query.folder.findFirst({
+                    where: (fields, { and }) => and(
+                        eq(fields.name, folderName),
+                        eq(fields.parentId, currentParentId!),
+                    ),
+                    columns: { id: true },
+                });
+
+                if (!nextFolder) {
+                    return null; // Folder in the path does not exist
+                }
+
+                currentParentId = nextFolder.id;
+            }
+
+            return currentParentId;
+        });
 }
 
 export async function getFoldersByParentId(parentId: string | null) {
@@ -183,10 +297,38 @@ export async function createFolder(
     });
 }
 
+export async function createFolderReturnId(
+    name: string,
+    modified: Date,
+    parentId: string | null,
+){
+    return await db.transaction(async (tx: Transaction) => {
+        // Increase parent folder item count by 1
+        if (parentId !== null) {
+            await tx.update(folder).set({ items: sql`${folder.items} + 1` }).where(eq(folder.id, parentId));
+        }
+        
+        await tx.insert(folder).values({
+            name,
+            type: "folder", // Explicitly set type to "folder"
+            items: 0, // New folder will have nothing in it
+            modified,
+            parentId,
+        });
+
+        const insertQuery = getFolderIdByNameAndParentIdQuery(tx);
+
+        const insertedFolder = await insertQuery.execute({
+            name,
+            parentId,
+        });
+
+        return insertedFolder?.id ?? null;
+    });
+}
+
 /* Delete folder */
 export async function deleteFolder(folderId: string) {
-
-    // No need to delete subfiles and subfolders manually since onDelete cascade will handle it
 
     // TODO -> Support S3 bucket
 
@@ -195,10 +337,6 @@ export async function deleteFolder(folderId: string) {
         where: eq(folder.id, folderId),
         columns: { parentId: true, items: true },
     });
-
-    if (currentFolder?.parentId !== null && currentFolder !== undefined) {
-        await db.execute(getDecrementAncestorItemsCountByOne(currentFolder.parentId));
-    }
 
     // Get the files in the folder to delete from server storage
     const subFolders = await getSubFoldersByParentId(folderId);
@@ -224,6 +362,12 @@ export async function deleteFolder(folderId: string) {
         }
     }
 
-    // Delete folder itself
-    return db.delete(folder).where(eq(folder.id, folderId));
+    // onDelete cascade doesn't work for deleting subfolders
+    if (currentFolder?.parentId !== null && currentFolder !== undefined) {
+        await db.execute(getDecrementAncestorItemsCount(currentFolder.parentId, currentFolder.items));
+    }
+    for (const folderIdToDelete of allFolderIds) {
+        // Delete folder from database
+        await db.delete(folder).where(eq(folder.id, folderIdToDelete));
+    }
 }

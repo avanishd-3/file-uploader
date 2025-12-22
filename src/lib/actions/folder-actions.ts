@@ -1,6 +1,6 @@
 "use server"
 
-import { createFolder, deleteFolder, getAllFolders, getFolderById, moveFolder, renameFolder } from "@/data-access/folder-access";
+import { createFolder, createFolderReturnId, deleteFolder, getAllFolders, getFolderById, moveFolder, renameFolder } from "@/data-access/folder-access";
 
 export async function getAllFoldersAction() {
     // This function fetches all folders from the database
@@ -20,6 +20,15 @@ export async function createFolderAction(
     parentId: string | null
 ) {
     return await createFolder(name, modifiedAt, parentId);
+}
+
+export async function createFolderReturnIdAction(
+    name: string,
+    modifiedAt: Date,
+    parentId: string | null
+) {
+    const newFolderId = await createFolderReturnId(name, modifiedAt, parentId);
+    return newFolderId;
 }
 
 export async function moveFolderAction(

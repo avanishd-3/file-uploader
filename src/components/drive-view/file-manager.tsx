@@ -38,20 +38,20 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { NameInput } from "./name-input"
 import { TableList } from "./table-list"
 
-import type { FileorFolderItem, FileorFolderType, FolderItem } from "../../lib/file"
+import type { FileorFolderItem, FileorFolderType, FileWithParent, FolderItem } from "../../lib/file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
 import { formatDate } from "@/lib/utils/utils"
-import { handleFileUpload } from "@/lib/utils/file-upload-util"
+import { handleFileUpload, handleFileUploadWithDifferentParents } from "@/lib/utils/file-upload-util"
 import { UploadModal } from "./upload-modal"
 
 import { useParams, useRouter } from "next/navigation"
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
-import { createFolderAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
-import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
+import { createFolderAction, createFolderReturnIdAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
+import { deleteFileAction, getFileParentIdByFilePathAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
-import { downloadFileClient } from "@/lib/utils/client-only-utils"
+import { downloadFileClient, traverseLocalFileTreeWithFolders, type TraversedEntry } from "@/lib/utils/client-only-utils"
 
 // Helper function to get file icon
 const getIcon = (type: FileorFolderType) => {
@@ -179,30 +179,6 @@ export default function FileManager(
   // New folder name
   const [newFolderName, setNewFolderName] = useState("")
   const [newFileName, setNewFileName] = useState("")
-
-  // Handle drag and drop from computer to file manager
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  };
-
-  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-  };
-
-  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-    // Handle file upload directly
-    const files = e.dataTransfer.files
-    if (files.length > 0) {
-      await handleFileUpload(Array.from(files), () => {return}, () => {return}, currentParentId, () => {return}, setFilesandFolders);
-    }
-  };
   
   // Filter files based on current parentId and search query
 
@@ -353,6 +329,40 @@ export default function FileManager(
     setNewFolderModalOpen(false)
   }
 
+  const createNewFolderArguments = async (folderName: string, parentID: string | null) => {
+
+    console.log(`Creating folder ${folderName} in parent ID: ${parentID}`);
+    // Add the new folder to the current parent folder's items
+    const newFolderId = await createFolderReturnIdAction(
+      folderName,
+      new Date(),
+      parentID
+    )
+
+    // Add toast notification for folder creation
+    // Use breadcrumTrail info to avoid another db call
+    toast.success(`${folderName} created in ${breadcrumbTrail.length === 0  || breadcrumbTrail[breadcrumbTrail.length - 1] === undefined ? "Home folder" : breadcrumbTrail[breadcrumbTrail.length - 1]?.name}`)
+
+    // Update file list by fetching new list from server
+    const newFilesandFolders = await getFilesandFoldersAction(parentID);
+
+    const newFolders = newFilesandFolders.filter((item) => item.type === "folder") as FolderItem[];
+
+    // Merge new folders with existing allUserFolders, excluding duplicates
+    const newAllFolders = allUserFolders.concat(newFolders.filter((nf) => !allUserFolders.some((of) => of.id === nf.id)));
+    
+    // Replace previous files with new ones
+    // This ensures that the UI reflects the latest state of files
+    // and folders in the current directory
+    setFilesandFolders(() => newFilesandFolders);
+    setAllUserFolders(newAllFolders); // Update all folders for move modal
+    
+    // Reset state
+    setNewFolderModalOpen(false)
+
+    return newFolderId;
+  }
+
   // Rename file/folder
   const renameFile = async () => {
     if (!activeFile || newFileName.trim() === "") return
@@ -466,6 +476,154 @@ export default function FileManager(
       setActiveFile(null) // Reset active file
     }
   }
+
+  // Handle drag and drop from computer to file manager
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    // Run feature detection.
+    // See: https://web.dev/patterns/files/drag-and-drop-directories/#progressive_enhancement
+    const supportsFileSystemAccessAPI = 'getAsFileSystemHandle' in DataTransferItem.prototype;
+    const supportsWebkitGetAsEntry = 'webkitGetAsEntry' in DataTransferItem.prototype;
+
+    if (!supportsFileSystemAccessAPI && !supportsWebkitGetAsEntry) {
+      console.warn('The File System Access API and webkitGetAsEntry are not supported in this browser.');
+      toast.warning("Your browswer does not support dropping folders")
+      // Handle file upload directly
+      const files = e.dataTransfer.files
+      if (files.length > 0) {
+        await handleFileUpload(Array.from(files), () => {return}, () => {return}, currentParentId, () => {return}, setFilesandFolders);
+      }
+    }
+    else {
+      let allEntries: TraversedEntry[] = [];
+
+      for (const item of Array.from(e.dataTransfer.items)) {
+        
+        // @ts-expect-error -- getAsFileSystemHandle is experimental (not in Firefox or Safari) but supported since Chrome 86
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call 
+        const entry: FileSystemEntry | null = supportsFileSystemAccessAPI ? item.getAsFileSystemHandle() : item.webkitGetAsEntry();
+        if (entry) {
+          const entries = await traverseLocalFileTreeWithFolders(entry);
+          allEntries = allEntries.concat(entries);
+        }
+      }
+
+      // Separate files and folders & remove .DS_Store files
+      const folders = allEntries.filter(e => e.type === "folder") as { type: "folder"; relativePath: string }[];
+      const files = allEntries.filter(e => e.type === "file" && e.file.name !== ".DS_Store") as { type: "file"; file: File; relativePath: string }[];
+
+      console.log("All folders from drop:", folders);
+      console.log("All files from drop:", files);
+
+      // For this implementation to work, you must assume entries are in BFS order
+
+      // Create folders first
+
+      // Can use tracking approach b/c entries are in BFS order
+      let insertParentId = currentParentId;
+      let potentialParentId = currentParentId;
+      let prevParentName = "";
+
+      for (const folderEntry of folders) {
+        const slashCount = folderEntry.relativePath.split("/").length - 1;
+
+        if (slashCount === 0) {
+          continue; // This should not happen, but just in case
+        }
+
+        // Need this condition b/c cannot parse a parentName
+        // So the else condition would skip creating top-level folders
+        else if (slashCount === 1) {
+          // Top-level folder
+
+          // Reset tracking variables
+          insertParentId = currentParentId;
+          potentialParentId = currentParentId;
+          prevParentName = "";
+
+          const folderName = folderEntry.relativePath.split("/")[0];
+          console.log(`Top-level folder detected: ${folderName}`);
+
+          if (folderName === "" || folderName === undefined) {
+            continue;
+          }
+
+          console.log(`Creating top-level folder: ${folderName}`);
+          potentialParentId = await createNewFolderArguments(folderName, insertParentId);
+        }
+
+        else {
+          // Nested folder
+          console.log(`Nested folder detected: ${folderEntry.relativePath}`);
+          const pathParts = folderEntry.relativePath.split("/"); // Ex: ["New", "New 2", ""] for New/New 2/
+          const parentName = pathParts[pathParts.length - 3]; 
+          const folderName = pathParts[pathParts.length - 2];
+          console.log(`Folder name: ${folderName}`);
+          if (!parentName || parentName === "" || !folderName || folderName === "") {
+            continue;
+          }
+          console.log(`Parent folder for nested folder ${folderEntry.relativePath} is ${parentName}`);
+
+          // Since entries are sorted in BFS order, can assume entering subfolder if parent folder name changes
+          if (prevParentName !== parentName) {
+            insertParentId = potentialParentId;
+            prevParentName = parentName;
+          }
+          
+          console.log(`Creating nested folder: ${folderName} in parent ID: ${insertParentId}`);
+          potentialParentId = await createNewFolderArguments(folderName, insertParentId);
+        }
+      }
+
+      // File creation
+      const fileInfo: FileWithParent[] = [];
+      for (const fileEntry of files) {
+        const slashCount = fileEntry.relativePath.split("/").length - 1;
+
+        if (slashCount === 0) { // Top-level file
+
+          const fileName = fileEntry.file.name;
+          console.log(`Top-level file detected: ${fileName}`);
+          fileInfo.push({ file: fileEntry.file, parentId: currentParentId });
+        }
+
+        else {
+          // Nested file
+          console.log(`Nested file detected: ${fileEntry.relativePath}`); // Ex: New/New 2/New 3/new.xlsx
+          const pathParts = fileEntry.relativePath.split("/");
+          const parentName = pathParts[pathParts.length - 2]; 
+          const fileName = pathParts[pathParts.length - 1];
+          console.log(`File name: ${fileName}`);
+          if (!parentName || parentName === "" || !fileName || fileName === "") {
+            continue;
+          }
+          
+          const parentFolderID = await getFileParentIdByFilePathAction(currentParentId, fileEntry.relativePath);
+          console.log(`Parent folder for nested file ${fileEntry.relativePath} is ${parentName} with ID: ${parentFolderID}`);
+
+          fileInfo.push({ file: fileEntry.file, parentId: parentFolderID ?? null});
+        }
+      }
+
+      // Upload files all at once to minimize network requests
+      await handleFileUploadWithDifferentParents(fileInfo, () => {return}, () => {return}, currentParentId, () => {return}, setFilesandFolders);
+    }
+  };
 
   return (
     // Card should have drop handlers to maximize drop area
