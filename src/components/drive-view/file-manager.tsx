@@ -48,7 +48,7 @@ import { UploadModal } from "./upload-modal"
 import { useParams, useRouter } from "next/navigation"
 import { getFilesandFoldersAction } from "@/lib/actions/other-actions"
 import { createFolderAction, createFolderReturnIdAction, deleteFolderAction, getFolderByIdAction, moveFolderAction, renameFolderAction } from "@/lib/actions/folder-actions"
-import { deleteFileAction, getFileParentIdByFilePathAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
+import { deleteFileAction, moveFileAction, renameFileAction } from "@/lib/actions/file-actions"
 import { toast, Toaster } from "sonner"
 import { AudioIcon, CodeIcon, FolderIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, TextIcon, VideoIcon } from "../ui-icons/icons"
 import { downloadFileClient, traverseLocalFileTreeWithFolders, type TraversedEntry } from "@/lib/utils/client-only-utils"
@@ -533,6 +533,10 @@ export default function FileManager(
       // For this implementation to work, you must assume entries are in BFS order
 
       // Create folders first
+      // Track created folders to quickly get IDs when creating files
+      // Files must either be in root drop folder or newly created folder
+      // So only need to track newly created folders from this drop event
+      const newFolderInfo: {name: string, path: string[], id: string | null}[] = []; 
 
       // Can use tracking approach b/c entries are in BFS order
       let insertParentId = currentParentId;
@@ -565,6 +569,7 @@ export default function FileManager(
 
           console.log(`Creating top-level folder: ${folderName}`);
           potentialParentId = await createNewFolderArguments(folderName, insertParentId);
+          newFolderInfo.push({ name: folderName, path: [folderName], id: potentialParentId });
         }
 
         else {
@@ -587,8 +592,12 @@ export default function FileManager(
           
           console.log(`Creating nested folder: ${folderName} in parent ID: ${insertParentId}`);
           potentialParentId = await createNewFolderArguments(folderName, insertParentId);
+          // Ex: ['New', 'New 2'] for New/New 2/ original path
+          newFolderInfo.push({ name: folderName, path: folderEntry.relativePath.split("/").slice(0, -1), id: potentialParentId });
         }
       }
+
+      console.log("All new folders created from drop:", newFolderInfo);
 
       // File creation
       const fileInfo: FileWithParent[] = [];
@@ -604,19 +613,21 @@ export default function FileManager(
 
         else {
           // Nested file
-          console.log(`Nested file detected: ${fileEntry.relativePath}`); // Ex: New/New 2/New 3/new.xlsx
+          console.log(`Nested file detected: ${fileEntry.relativePath}`); // Ex: New/New 2/new.xlsx
           const pathParts = fileEntry.relativePath.split("/");
-          const parentName = pathParts[pathParts.length - 2]; 
-          const fileName = pathParts[pathParts.length - 1];
-          console.log(`File name: ${fileName}`);
-          if (!parentName || parentName === "" || !fileName || fileName === "") {
-            continue;
-          }
-          
-          const parentFolderID = await getFileParentIdByFilePathAction(currentParentId, fileEntry.relativePath);
-          console.log(`Parent folder for nested file ${fileEntry.relativePath} is ${parentName} with ID: ${parentFolderID}`);
+          const pathFolderOnly = pathParts.slice(0, -1); // Ex: ["New", "New 2"] for New/New 2/new.xlsx
 
-          fileInfo.push({ file: fileEntry.file, parentId: parentFolderID ?? null});
+          function matchingFolders(folderPath: string, targetPath: string): boolean {
+            return folderPath === targetPath
+          };
+
+          const parentFolder = newFolderInfo.find(folder => matchingFolders(folder.path.join("/"), pathFolderOnly.join("/")));
+          const parentName = parentFolder ? parentFolder.name : "";
+          const parentFolderId = parentFolder ? parentFolder.id : null;
+          
+          console.log(`Parent folder for nested file ${fileEntry.relativePath} is ${parentName} with ID: ${parentFolderId}`);
+
+          fileInfo.push({ file: fileEntry.file, parentId: parentFolderId ?? null});
         }
       }
 

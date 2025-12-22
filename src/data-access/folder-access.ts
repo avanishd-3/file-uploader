@@ -151,66 +151,6 @@ export async function getFolderById(folderId: string) {
     });
 }
 
-export async function getFileParentIdByFilePath(currentParentId: string | null, path: string) {
-    // Ex input: Test/Test 2
-    console.log("Getting parent ID for file path:", path);
-    const pathParts = path.split('/')
-    console.log("Path parts:", pathParts);
-
-    if (pathParts.length <= 1 || !pathParts[0] || pathParts[0].trim() === "") {
-        // File is at the root level, so it has no parent
-        return null;
-    }
-
-    console.log("Searching for initial parent folder:", pathParts[0]);
-    console.log("Current parent ID:", currentParentId);
-
-    const firstFolderName = pathParts[0];
-
-    return db.query.folder.findFirst({
-            where: (fields, { and, isNull }) => currentParentId === null ? and(
-                eq(fields.name, firstFolderName),
-                isNull(fields.parentId),
-            ) : and(
-                eq(fields.name, firstFolderName),
-                eq(fields.parentId, currentParentId),
-            ),
-            columns: { id: true },
-        }).then(async (initialParent) => {
-            if (!initialParent) {
-                console.log("Initial parent folder not found");
-                return null;
-            }
-
-            let currentParentId: string | null = initialParent.id;
-            console.log("Initial parent folder ID:", currentParentId);
-
-            // Traverse down the folder hierarchy to find the parent folder
-            for (let i = 1; i < pathParts.length; i++) {
-                console.log("New parent folder ID:", currentParentId);
-                const folderName = pathParts[i];
-                if (!folderName || folderName.trim() === "" || !currentParentId) {
-                    return null;
-                }
-                const nextFolder = await db.query.folder.findFirst({
-                    where: (fields, { and }) => and(
-                        eq(fields.name, folderName),
-                        eq(fields.parentId, currentParentId!),
-                    ),
-                    columns: { id: true },
-                });
-
-                if (!nextFolder) {
-                    return null; // Folder in the path does not exist
-                }
-
-                currentParentId = nextFolder.id;
-            }
-
-            return currentParentId;
-        });
-}
-
 export async function getFoldersByParentId(parentId: string | null) {
     // Get all folders that belong to the specified parentId
     // Sort by name to make it look better on the UI
