@@ -41,7 +41,7 @@ import { TableList } from "./table-list"
 import type { FileorFolderItem, FileorFolderType, FileWithParent, FolderItem } from "../../lib/file"
 import { TableGrid } from "./table-grid"
 import { FilePreview } from "./file-preview"
-import { formatDate } from "@/lib/utils/utils"
+import { cn, formatDate } from "@/lib/utils/utils"
 import { handleFileUpload, handleFileUploadWithDifferentParents } from "@/lib/utils/file-upload-util"
 import { UploadModal } from "./upload-modal"
 
@@ -159,7 +159,7 @@ export default function FileManager(
   const [selectedFiles, setSelectedFiles] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"list" | "grid">("list")
   const [searchQuery, setSearchQuery] = useState("")
-  const [, setIsDragging] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
 
   // Modals state
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -638,7 +638,9 @@ export default function FileManager(
 
   return (
     // Card should have drop handlers to maximize drop area
-    <Card className="w-full max-w-6xl mx-auto shadow-md"
+    // Also highlight card when dragging files over it so user knows they can drop files here
+    // Dashed border with this color is good enough
+    <Card className={cn(isDragging ? "border-4 border-dashed border-primary/70 bg-primary/10" : "", "w-full max-w-6xl mx-auto shadow-md")}
      onDragOver={handleDragOver}
      onDragLeave={handleDragLeave}
      onDrop={handleDrop}>
