@@ -256,7 +256,7 @@ const wordHighlightClassNames = cn(
   "dark:[&_.highlighted-word]:!bg-blue-500/10"
 );
 
-const codeBlockClassName = cn(
+export const codeBlockClassName = cn(
   "mt-0 bg-background text-sm",
   "[&_pre]:py-4",
   // "[&_.shiki]:!bg-[var(--shiki-bg)]",

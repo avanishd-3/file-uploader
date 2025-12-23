@@ -11,7 +11,7 @@ import { AudioIcon, CodeIcon, GenericFileIcon, ImageIcon, PDFIcon, SheetIcon, Te
 import type { FileItem, FileorFolderItem, FileorFolderType } from "../../lib/file"
 
 import type { BundledLanguage } from "@/components/kibo-ui/code-block"
-import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue, CodeBlockDownloadButton } from "@/components/kibo-ui/code-block"
+import { CodeBlock, type CodeBlockData, CodeBlockBody, CodeBlockContent, CodeBlockCopyButton, CodeBlockFilename, CodeBlockFiles, CodeBlockHeader, CodeBlockItem, CodeBlockSelect, CodeBlockSelectContent, CodeBlockSelectItem, CodeBlockSelectTrigger, CodeBlockSelectValue, CodeBlockDownloadButton, codeBlockClassName } from "@/components/kibo-ui/code-block"
 
 import Image from "next/image"
 import { checkFileExistsAction, parseSpreadsheetAction, readFileContentAction } from "@/lib/actions/other-actions";
@@ -25,6 +25,7 @@ import { DataTable } from "../data-table/data-table"
 import { DataTableColumnHeader } from "../data-table/data-table-column-header"
 import type { ParseStepResult } from "papaparse"
 import { downloadFileClient } from "@/lib/utils/client-only-utils"
+import { LoadingSpinnerWithMessage } from "../loading-spinner"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getTableHeaders = (rows: any[]): ColumnDef<any>[] => {
@@ -87,6 +88,7 @@ export function FilePreview({  previewModalOpen,
 
   // 1 use effect for multi-type file fetching to prevent excessive re-renders
   const [codeText, setCodeText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [sheetData, setSheetData] = useState<any[]>([]);
   const [sheetParseError, setSheetParseError] = useState<boolean>(false);
@@ -94,6 +96,7 @@ export function FilePreview({  previewModalOpen,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [sheetTableColumns, setSheeTableColumns] = useState<ColumnDef<any>[]>([]); // Columns for CSV data table
 
+  // TODO: Switch to Tanstack Query so this is more robust
   useEffect(() => {
     // Destruct into array of JSON for code block
     const getData = async () => {
@@ -104,12 +107,26 @@ export function FilePreview({  previewModalOpen,
       setSheeTableColumns([]);
       setSheetParseError(false);
 
+      // Set loading state "globally" for all fetches
+      setIsLoading(true);
+
       // Fetch code content
       if (shouldFetchCode) { // Technically extra effect runs but we need to check when activeFile changes
         console.log("Fetching code for file:", activeFile.name);
-        const result = await readFileContentAction((activeFile).url);
-        setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
-        console.log("Fetched code content:", result);
+
+        if (activeFile.extension === "md") {
+          console.log("Markdown file detected for preview.");
+          const response = await fetch(`/api/parseMarkdown?url=${encodeURIComponent((activeFile).url)}`);
+          const markdownHtml = await response.text();
+          console.log("Fetched parsed markdown HTML:", markdownHtml);
+          setCodeText(markdownHtml);
+        }
+
+        else {
+          const result = await readFileContentAction((activeFile).url);
+          setCodeText(result); // This will be empty if the file doesn't exist or cannot be read
+          console.log("Fetched code content:", result);
+        }
       }
 
       // Parse data if CSV
@@ -168,6 +185,9 @@ export function FilePreview({  previewModalOpen,
           setSheetParseError(true);
       }
       }
+
+    // End loading state
+    setIsLoading(false);
       
     };
     void getData();
@@ -306,14 +326,24 @@ export function FilePreview({  previewModalOpen,
               </MediaPlayer>
               }
               </>
-            ): activeFile?.type === "document" && activeFile.extension === "docx" ? (
+            ): activeFile?.type === "document" && (activeFile.extension === "docx" || activeFile.extension === "md") ? (
+              activeFile.extension === "md" ? (
+                // Just render the parsed HTML directly for now, even though this is not ideal
+                // Code block does the same thing under the hood anyway
+                isLoading ? (
+                  <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                    <LoadingSpinnerWithMessage spinnerSize="xl" message="Loading markdown preview..." />
+                  </div>
+                ) :
+                  <article className={codeBlockClassName} dangerouslySetInnerHTML={{ __html: codeText }}/>
+              ) : (
               <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
                 {/* TODO: Add docx preview support. Currently, the fallback is rendered */}
-                {/* TODO: Add proper markdown preview support. Currently, just rendering as plain text (no mermaid diagram support) */}
                   <TextIcon size="lg" />
               </div>
+              )
             ) : activeFile?.type === "code" || activeFile?.type === "document" ? (
-              // Non-docx documents only
+              // Non-docx and non-md documents only
               <div className="w-full h-[70vh] bg-muted rounded-md flex items-center justify-center">
                 {!fileExists ? (
                   // Fallback file icon
