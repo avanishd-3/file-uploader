@@ -24,7 +24,6 @@ function ItemSeparator({
     <Separator
       data-slot="item-separator"
       orientation="horizontal"
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       className={cn("my-0", className)}
       {...props}
     />

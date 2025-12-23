@@ -41,9 +41,7 @@ export async function GET(req: Request) {
         .use(remarkMath) // Support for LaTeX math syntax
         .use(remarkRehype) // Convert to rehype (HTML) AST
         .use(rehypeKatex) // Render LaTeX math expressions
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         .use(rehypeShiki, { theme: 'github-dark-default' }) // Syntax highlighting for code blocks. Theme must be provided or parsing will fail
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         .use(rehypeStringify) // Need to include this to convert to HTML or it will have TypeError: Cannot `process` without `compiler`
         .process(text)
 
