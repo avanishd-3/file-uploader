@@ -351,6 +351,11 @@ export function FilePreview({  previewModalOpen,
                     <CodeIcon size="lg" />
                   </>
                 ) : (
+                  isLoading ? (
+                    <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                      <LoadingSpinnerWithMessage spinnerSize="xl" message="Loading code preview..." />
+                    </div>
+                  ) :
                   // See: https://www.kibo-ui.com/components/code-block#installation
                   <CodeBlock data={code} defaultValue={code[0]?.language}>
                     <CodeBlockHeader>
@@ -395,6 +400,11 @@ export function FilePreview({  previewModalOpen,
                   {activeFile.extension === "csv" || activeFile.extension === "xlsx" && !sheetParseError ? ( 
                   // Use 95% width so there is some padding around the table
                   // mt-4 is so view button is not at the very top edge
+                  isLoading ? (
+                  <div className="w-full h-[60vh] bg-muted rounded-md flex items-center justify-center">
+                    <LoadingSpinnerWithMessage spinnerSize="xl" message="Loading sheet preview..." />
+                  </div>
+                  ) : 
                   <div className="w-[95%] h-full mt-4 overflow-auto">
                     {/* Use table for CSV preview */}
                     {/* See: https://ui.shadcn.com/docs/components/data-table#render-the-table */}
