@@ -4,6 +4,7 @@ import path from 'path'
 import { uploadDir } from '@/server'
 
 import { NextResponse } from 'next/server'
+import { sanitizeFileName } from '@/lib/utils/utils'
 
 export const dynamic = 'force-dynamic' // Disable static generation for this route
 
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
     const buffer = Buffer.from(arrayBuffer);
 
     // Save the file to the upload directory
-    const fileName = file.name.split('/').pop(); // Get the original file name
+    const fileName = sanitizeFileName(file.name.split('/').pop() ?? ""); // Get the original file name
     if (!fileName) {
         return NextResponse.json({ error: 'Invalid file name' }, { status: 400 });
     }

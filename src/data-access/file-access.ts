@@ -68,6 +68,13 @@ export async function getFileById(fileId: string) {
     });
 }
 
+export async function getFileNameByPath(filePath: string) {
+    return db.query.file.findFirst({
+        where: eq(file.url, filePath),
+        columns: { name: true },
+    });
+}
+
 export async function getFilesByParentId(parentId: string | null) {
 
     // Get all files that belong to the specified parentId

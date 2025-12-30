@@ -2,6 +2,7 @@
 /* They all rely on browser APIs, like window */
 
 import { toast } from "sonner";
+import { getFileNameByPathAction } from "../actions/file-actions";
 
 export async function downloadFileClient(file_info: string, uri = "/api/downloadFile") {
   /**
@@ -25,8 +26,9 @@ export async function downloadFileClient(file_info: string, uri = "/api/download
 
     link.href = url;
 
-    // Set filename received in response
-    const downloadFileName = file_info.split('/').pop() ?? 'downloaded_file';
+    // Get original file name from file_info
+    const originalFileName = await getFileNameByPathAction(file_info);
+    const downloadFileName = originalFileName?.name ?? file_info.split('/').pop() ?? 'downloaded_file';
     link.setAttribute('download', downloadFileName);
 
     // Append to the document and trigger click

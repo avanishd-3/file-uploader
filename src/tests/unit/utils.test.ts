@@ -1,10 +1,11 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { convertFileSize, formatDate, getFileExtension, getMimeType } from "@/lib/utils/utils";
+import { convertFileSize, formatDate, getFileExtension, getMimeType, sanitizeFileName } from "@/lib/utils/utils";
 
 // Mock time zone to UTC so date formatting tests are consistent
 // See: https://stackoverflow.com/questions/76911900/setting-a-timezone-in-vitest
 beforeEach(() => {
     vi.stubEnv("TZ", "UTC");
+    vi.useFakeTimers({ now: new Date("2024-01-15T12:00:00Z") });
 });
 
 afterEach(() => {
@@ -134,5 +135,53 @@ describe("getMimeType tests", () => {
 
     test("getMimeType no extension", () => {
         expect(getMimeType("")).toBe("application/octet-stream");
+    });
+});
+
+describe("sanitizeFileName tests", () => {
+    test("basic cases", () => {
+        expect(sanitizeFileName("image.png")).toBe("image_1705320000000.png");
+        expect(sanitizeFileName("document.pdf")).toBe("document_1705320000000.pdf");
+        expect(sanitizeFileName("my file.txt")).toBe("my file_1705320000000.txt");
+        expect(sanitizeFileName("report 2023.docx")).toBe("report 2023_1705320000000.docx");
+    });
+
+    test("null character", () => {
+        expect(sanitizeFileName("hello\u0000world")).toBe("helloworld_1705320000000");
+    });
+
+    test("control characters", () => {
+        expect(sanitizeFileName("hello\nworld")).toBe("helloworld_1705320000000");
+    });
+
+    test("restricted code", () => {
+        expect(sanitizeFileName("h?w")).toBe("hw_1705320000000");
+        expect(sanitizeFileName("h/w")).toBe("hw_1705320000000");
+        expect(sanitizeFileName("h*w")).toBe("hw_1705320000000");
+    });
+
+    test("restricted suffixes", () => {
+        expect(sanitizeFileName("mr.")).toBe("mr_1705320000000");
+        expect(sanitizeFileName("mr..")).toBe("mr_1705320000000");
+        expect(sanitizeFileName("mr ")).toBe("mr_1705320000000");
+        expect(sanitizeFileName("mr  ")).toBe("mr_1705320000000");
+    });
+
+    test("relative paths", () => {
+        expect(sanitizeFileName(".")).toBe("1705320000000");
+        expect(sanitizeFileName("..")).toBe("1705320000000");
+        expect(sanitizeFileName("./")).toBe("1705320000000");
+        expect(sanitizeFileName("../")).toBe("1705320000000");
+        expect(sanitizeFileName("/..")).toBe("1705320000000");
+        expect(sanitizeFileName("/../")).toBe("1705320000000");
+        expect(sanitizeFileName("*.|.")).toBe("1705320000000");
+    });
+
+    test("255 bytes limit", () => {
+        const longName = "a".repeat(300) + ".txt";
+        const sanitized = sanitizeFileName(longName);
+        // 255 bytes limit includes the timestamp and extension
+        expect(sanitized.length).toBeLessThanOrEqual(255);
+        expect(sanitized.endsWith(".txt")).toBe(true);
     });
 });

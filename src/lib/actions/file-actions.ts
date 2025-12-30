@@ -1,6 +1,6 @@
 "use server"
 
-import { createFile, deleteFile, moveFile, renameFile, getFilesByParentName} from "@/data-access/file-access";
+import { createFile, deleteFile, moveFile, renameFile, getFilesByParentName, getFileNameByPath} from "@/data-access/file-access";
 import { type FileType } from "@/lib/file";
 
 export async function createFileAction(
@@ -13,6 +13,16 @@ export async function createFileAction(
     url: string
 ) {
     return await createFile(name, type, size, createdAt, extension, parentId, url);
+}
+
+export async function getFileNameByPathAction(filePath: string) {
+    // This function fetches the file name based on the file path
+
+    if (filePath === '') {
+        return null;
+    }
+
+    return await getFileNameByPath(filePath);
 }
 
 export async function renameFileAction(fileId: string, newName: string) {
